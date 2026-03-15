@@ -1,0 +1,18 @@
+[Unit]
+Description=Personal AI OS — Agent Heartbeat (one-shot)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=clawuser
+Group=clawuser
+WorkingDirectory=/home/clawuser/personal-os
+EnvironmentFile=/home/clawuser/personal-os/.env
+ExecStart=/usr/bin/node src/utils/heartbeat.js
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=personal-os-heartbeat
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/clawuser/personal-os/src/agents

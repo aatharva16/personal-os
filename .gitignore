@@ -1,0 +1,13 @@
+# Environment — NEVER commit secrets
+.env
+
+# Dependencies
+node_modules/
+
+# Runtime state
+*.log
+*.pid
+agents/*/MEMORY.md.bak
+
+# OS
+.DS_Store

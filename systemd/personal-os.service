@@ -1,0 +1,27 @@
+[Unit]
+Description=Personal AI OS — Telegram Bot
+Documentation=https://github.com/personal-os
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=clawuser
+Group=clawuser
+WorkingDirectory=/home/clawuser/personal-os
+EnvironmentFile=/home/clawuser/personal-os/.env
+ExecStart=/usr/bin/node src/index.js
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=personal-os
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/clawuser/personal-os/src/agents
+
+[Install]
+WantedBy=multi-user.target
