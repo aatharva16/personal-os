@@ -64,6 +64,8 @@ done
 export OPENCLAW_WORKSPACE_ROOT="${TEST_WORKSPACE}"
 # Always bind to loopback for local testing regardless of .env setting
 export GATEWAY_BIND="loopback"
+# For local testing, allowedOrigins only needs localhost
+export TAILSCALE_IP="127.0.0.1"
 
 # ── Install dependencies ──────────────────────────────────────────────────────
 if [[ "${SKIP_INSTALL}" == false ]]; then
