@@ -55,7 +55,6 @@ REQUIRED_VARS=(
   HEARTBEAT_MODEL_ID
   TELEGRAM_BOT_TOKEN
   TELEGRAM_ALLOWED_USER_ID
-  WEBCHAT_TOKEN
 )
 for VAR in "${REQUIRED_VARS[@]}"; do
   [[ -n "${!VAR:-}" ]] || error "Required env var '${VAR}' is not set in .env"
@@ -63,6 +62,8 @@ done
 
 # Override workspace to local test dir (never touch ~/.openclaw or the VM)
 export OPENCLAW_WORKSPACE_ROOT="${TEST_WORKSPACE}"
+# Always bind to loopback for local testing regardless of .env setting
+export GATEWAY_BIND="loopback"
 
 # ── Install dependencies ──────────────────────────────────────────────────────
 if [[ "${SKIP_INSTALL}" == false ]]; then
@@ -151,8 +152,8 @@ echo "  Telegram:"
 echo "    → Message your bot (Chief of Staff handles all routing)"
 echo ""
 echo "  Web Control UI:"
-echo "    → http://localhost:18790"
-echo "    → Token: ${WEBCHAT_TOKEN}"
+echo "    → http://localhost:18789"
+echo "    → Paste the gateway token from the logs above when prompted"
 echo ""
 echo "  Workspace: ${TEST_WORKSPACE}"
 echo "  Logs:      ${TEST_WORKSPACE}/openclaw.log"

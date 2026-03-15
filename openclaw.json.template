@@ -102,24 +102,19 @@
     // Only TELEGRAM_ALLOWED_USER_ID can DM the bot.
     // Note: OpenClaw supports only one botToken per telegram channel.
     // Access the News agent directly via the WebChat UI.
+    // Single bot — all DMs go to the Chief of Staff, which routes to specialists.
+    // Only TELEGRAM_ALLOWED_USER_ID can DM the bot.
     "telegram": {
       "enabled": true,
       "botToken": "${TELEGRAM_BOT_TOKEN}",
       "dmPolicy": "allowlist",
       "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"],
       "streaming": "partial"
-    },
-
-    // ── WebChat (Control UI) ──────────────────────────────────────────────────
-    // Browser-based control panel. Token-protected.
-    // Local:      http://localhost:18790
-    // Production: http://<tailscale-ip>:18790  (Tailscale VPN required)
-    // Paste WEBCHAT_TOKEN from .env when the UI prompts for it.
-    // Port is hardcoded as an integer — envsubst produces strings which OpenClaw rejects.
-    "webchat": {
-      "token": "${WEBCHAT_TOKEN}",
-      "port": 18790
     }
+    // WebChat control panel is auto-configured by OpenClaw on the gateway port.
+    // Do not add a "webchat" entry here — OpenClaw rejects it as an unknown channel id.
+    // Access: http://localhost:18789 (local) or http://<tailscale-ip>:18789 (prod).
+    // Paste the gateway token shown in startup logs when the UI prompts for it.
   },
 
   // ── Agent Bindings ─────────────────────────────────────────────────────────
@@ -132,12 +127,13 @@
   ],
 
   // ── Gateway ────────────────────────────────────────────────────────────────
-  // The main gateway port stays loopback (internal only).
-  // WebChat binds on its own port (see channels.webchat above).
+  // GATEWAY_BIND controls the network interface:
+  //   loopback  = localhost only (default — safe for local dev)
+  //   0.0.0.0   = all interfaces (required for Tailscale/Hetzner production access)
   "gateway": {
     "port": 18789,
     "mode": "local",
-    "bind": "loopback"
+    "bind": "${GATEWAY_BIND}"
   },
 
   // ── Logging ────────────────────────────────────────────────────────────────
