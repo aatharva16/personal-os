@@ -109,6 +109,18 @@ fi
 log "Rendering openclaw.json…"
 envsubst < "${REPO_DIR}/openclaw.json.template" > "${TEST_WORKSPACE}/openclaw.json"
 
+# ── Create NadirClaw config ───────────────────────────────────────────────────
+log "Writing NadirClaw config to ~/.nadirclaw/.env…"
+mkdir -p "${HOME}/.nadirclaw"
+cat > "${HOME}/.nadirclaw/.env" <<EOF
+NADIRCLAW_PORT=${NADIRCLAW_PORT}
+NADIRCLAW_SIMPLE_MODEL=${NADIRCLAW_SIMPLE_MODEL}
+NADIRCLAW_COMPLEX_MODEL=${NADIRCLAW_COMPLEX_MODEL}
+OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+EOF
+[[ -n "${NADIRCLAW_CONFIDENCE_THRESHOLD:-}" ]] && \
+  echo "NADIRCLAW_CONFIDENCE_THRESHOLD=${NADIRCLAW_CONFIDENCE_THRESHOLD}" >> "${HOME}/.nadirclaw/.env"
+
 # ── Cleanup trap ─────────────────────────────────────────────────────────────
 NADIRCLAW_PID=""
 OPENCLAW_PID=""
