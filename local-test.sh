@@ -70,11 +70,19 @@ export OPENCLAW_WORKSPACE_ROOT="${TEST_WORKSPACE}"
 
 # ── Install dependencies ──────────────────────────────────────────────────────
 if [[ "${SKIP_INSTALL}" == false ]]; then
-  log "Installing OpenClaw (npm)…"
-  sudo npm install -g openclaw@latest
+  if ! command -v openclaw >/dev/null 2>&1; then
+    log "Installing OpenClaw (npm)…"
+    sudo npm install -g openclaw@latest
+  else
+    log "OpenClaw already installed, skipping."
+  fi
 
-  log "Installing NadirClaw (pip)…"
-  pipx install nadirclaw --force
+  if ! command -v nadirclaw >/dev/null 2>&1; then
+    log "Installing NadirClaw (pip)…"
+    pipx install nadirclaw
+  else
+    log "NadirClaw already installed, skipping."
+  fi
 else
   log "Skipping installs (--skip-install)."
 fi
