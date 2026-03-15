@@ -8,6 +8,10 @@
   // All inference is routed through NadirClaw (localhost:8856), which
   // classifies prompt complexity and forwards to cheap or expensive models
   // on OpenRouter. NadirClaw presents an OpenAI-compatible API.
+  //
+  // OpenRouter is also registered directly so that heartbeats can be pinned
+  // to a free model without going through NadirClaw routing (which could
+  // occasionally classify a heartbeat as "complex" and spend budget).
   "models": {
     "mode": "merge",
     "providers": {
@@ -21,6 +25,23 @@
             "name": "auto (NadirClaw routed)",
             "input": ["text"],
             "contextWindow": 200000,
+            "maxTokens": 8096
+          }
+        ]
+      },
+      "openrouter": {
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "apiKey": "${OPENROUTER_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          {
+            // Free tier model used for heartbeats — zero cost, no rate-limit surprises.
+            // meta-llama/llama-4-scout:free: Meta's lightweight scout model,
+            // 10M context, reliably available on OpenRouter's free tier.
+            "id": "meta-llama/llama-4-scout:free",
+            "name": "Llama 4 Scout (free)",
+            "input": ["text"],
+            "contextWindow": 10000000,
             "maxTokens": 8096
           }
         ]
@@ -39,7 +60,9 @@
         "fallbacks": []
       },
       "heartbeat": {
-        "model": "nadirclaw/auto"
+        // Pinned to a free OpenRouter model — bypasses NadirClaw so heartbeats
+        // never accidentally consume budget from the complex model quota.
+        "model": "openrouter/meta-llama/llama-4-scout:free"
       },
       "compaction": {
         "mode": "default",
