@@ -142,6 +142,16 @@ if ! kill -0 "${OPENCLAW_PID}" 2>/dev/null; then
 fi
 log "OpenClaw is running (PID ${OPENCLAW_PID})."
 
+# Extract gateway auth token written by OpenClaw into the config on first start.
+# Give it a moment to write the token if it wasn't already present.
+GATEWAY_TOKEN=""
+for i in $(seq 1 5); do
+  GATEWAY_TOKEN=$(grep -A3 '"auth"' "${TEST_WORKSPACE}/openclaw.json" 2>/dev/null \
+    | grep '"token"' | awk -F'"' '{print $4}')
+  [[ -n "${GATEWAY_TOKEN}" ]] && break
+  sleep 1
+done
+
 # ── Instructions ──────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -152,8 +162,12 @@ echo "  Telegram:"
 echo "    → Message your bot (Chief of Staff handles all routing)"
 echo ""
 echo "  Web Control UI:"
-echo "    → http://localhost:18789"
-echo "    → Paste the gateway token from the logs above when prompted"
+echo "    → http://localhost:18791"
+if [[ -n "${GATEWAY_TOKEN}" ]]; then
+  echo "    → Gateway token: ${GATEWAY_TOKEN}"
+else
+  echo "    → Gateway token: (not found — check .test-workspace/openclaw.json → gateway.auth.token)"
+fi
 echo ""
 echo "  Workspace: ${TEST_WORKSPACE}"
 echo "  Logs:      ${TEST_WORKSPACE}/openclaw.log"
