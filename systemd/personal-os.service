@@ -19,11 +19,5 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=personal-os
 
-# Hardening
-NoNewPrivileges=true
-ProtectSystem=strict
-ProtectHome=read-only
-ReadWritePaths=/home/clawuser/.openclaw
-
 [Install]
 WantedBy=multi-user.target
