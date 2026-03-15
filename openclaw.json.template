@@ -5,13 +5,14 @@
 
 {
   // ── Model Providers ────────────────────────────────────────────────────────
-  // All inference is routed through NadirClaw, which classifies prompt
-  // complexity and forwards to Gemini Flash (cheap) or Claude Sonnet (smart).
+  // All inference is routed through NadirClaw (localhost:8856), which
+  // classifies prompt complexity and forwards to cheap or expensive models
+  // on OpenRouter. NadirClaw presents an OpenAI-compatible API.
   "models": {
     "mode": "merge",
     "providers": {
       "nadirclaw": {
-        "baseUrl": "http://localhost:${NADIRCLAW_PORT}/v1",
+        "baseUrl": "http://127.0.0.1:${NADIRCLAW_PORT}/v1",
         "apiKey": "local",
         "api": "openai-completions",
         "models": [
@@ -28,73 +29,96 @@
   },
 
   // ── Agent Definitions ──────────────────────────────────────────────────────
+  // Default model is NadirClaw auto-routing (cheap for simple, smart for complex).
+  // Stocks and Portfolio override to complex-only because numerical/financial
+  // accuracy is worth the extra cost.
   "agents": {
     "defaults": {
       "model": {
-        "primary": "nadirclaw/auto"
+        "primary": "nadirclaw/auto",
+        "fallbacks": []
+      },
+      "heartbeat": {
+        "model": "nadirclaw/auto",
+        "intervalMinutes": 55
       },
       "compaction": {
         "mode": "default",
         "memoryFlush": {
           "enabled": true,
           "softThresholdTokens": 8000,
-          "prompt": "Extract key facts, decisions, open items and preferences into memory/YYYY-MM-DD.md. Be terse — bullet points only. Omit small talk.",
-          "systemPrompt": "You are a memory curator. Extract only what is worth remembering long-term."
+          "prompt": "Extract key facts, decisions, open items and preferences into memory/YYYY-MM-DD.md. Bullet points only. Omit small talk.",
+          "systemPrompt": "Memory curator. Extract only what is worth remembering long-term."
         }
-      },
-      "heartbeat": {
-        "model": "nadirclaw/auto",
-        "intervalMinutes": 55
       },
       "contextPruning": {
         "mode": "cache-ttl",
         "ttl": "6h",
         "keepLastAssistants": 3
       },
+      "bootstrapMaxChars": 3000,
+      "bootstrapTotalMaxChars": 15000,
+      "toolOutputMaxChars": 2000,
       "maxConcurrent": 2,
       "subagents": { "maxConcurrent": 4 }
     },
+
     "list": [
       {
         "id": "health",
-        "name": "Vita — Health",
+        "name": "Health Tracker",
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-health"
       },
       {
         "id": "stocks",
-        "name": "Quant — Stocks",
+        "name": "Stock Analyser",
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-stocks"
       },
       {
+        "id": "portfolio",
+        "name": "Portfolio Checker",
+        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-portfolio"
+      },
+      {
+        "id": "news",
+        "name": "News Feed",
+        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-news"
+      },
+      {
+        "id": "jobs",
+        "name": "Job Searcher",
+        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-jobs"
+      },
+      {
         "id": "email",
-        "name": "Hermes — Email",
+        "name": "Email Organiser",
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-email"
       }
     ]
   },
 
   // ── Telegram Channel ───────────────────────────────────────────────────────
-  // Each agent gets its own bot (created with @BotFather).
-  // Only TELEGRAM_ALLOWED_USER_ID can DM any of the bots.
+  // Single bot for all agents. Switch active agent with /agent <id> in chat.
+  // Only TELEGRAM_ALLOWED_USER_ID can message the bot.
   "channels": {
     "telegram": {
+      "enabled": true,
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
       "dmPolicy": "allowlist",
-      "groupPolicy": "allowlist",
-      "streamMode": "partial",
       "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"],
-      "accounts": {
-        "health": { "botToken": "${TELEGRAM_BOT_TOKEN_HEALTH}" },
-        "stocks": { "botToken": "${TELEGRAM_BOT_TOKEN_STOCKS}" },
-        "email":  { "botToken": "${TELEGRAM_BOT_TOKEN_EMAIL}"  }
-      }
+      "streamMode": "partial"
     }
   },
 
-  // ── Agent ↔ Channel Bindings ───────────────────────────────────────────────
+  // ── Default Agent Binding ─────────────────────────────────────────────────
+  // All Telegram DMs go to health by default.
+  // User switches with /agent <id> (e.g. /agent stocks, /agent email).
   "bindings": [
-    { "agentId": "health", "match": { "channel": "telegram", "accountId": "health" } },
-    { "agentId": "stocks", "match": { "channel": "telegram", "accountId": "stocks" } },
-    { "agentId": "email",  "match": { "channel": "telegram", "accountId": "email"  } }
+    {
+      "agentId": "health",
+      "match": { "channel": "telegram", "peer": { "kind": "direct" } },
+      "description": "Default agent — use /agent <id> to switch"
+    }
   ],
 
   // ── Gateway ────────────────────────────────────────────────────────────────

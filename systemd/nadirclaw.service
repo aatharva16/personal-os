@@ -10,7 +10,8 @@ User=clawuser
 Group=clawuser
 WorkingDirectory=/home/clawuser
 
-# Load .env for API keys and model config
+# NadirClaw reads model config and API keys from environment variables.
+# OPENROUTER_API_KEY is forwarded to LiteLLM for all OpenRouter model calls.
 EnvironmentFile=/home/clawuser/personal-os/.env
 
 ExecStart=/usr/local/bin/nadirclaw serve
@@ -20,7 +21,6 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=nadirclaw
 
-# Hardening
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=read-only

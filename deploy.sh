@@ -14,7 +14,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BRANCH="${BRANCH:-main}"
 NODE_MIN_VERSION=22
 
-AGENTS=("health" "stocks" "email")
+AGENTS=(health stocks portfolio news jobs email)
 
 # ── Parse args ────────────────────────────────────────────────────────────────
 SKIP_INSTALL=false
@@ -35,7 +35,7 @@ log "Pre-flight checks…"
 command -v git     >/dev/null 2>&1 || error "git is not installed."
 command -v node    >/dev/null 2>&1 || error "Node.js is not installed."
 command -v python3 >/dev/null 2>&1 || error "Python 3 is not installed."
-command -v envsubst >/dev/null 2>&1 || error "envsubst not found. Install gettext: apt install gettext-base"
+command -v envsubst >/dev/null 2>&1 || error "envsubst not found. Run: sudo apt install gettext-base"
 
 NODE_VERSION=$(node -e "process.stdout.write(process.versions.node.split('.')[0])")
 (( NODE_VERSION >= NODE_MIN_VERSION )) || \
@@ -44,7 +44,7 @@ NODE_VERSION=$(node -e "process.stdout.write(process.versions.node.split('.')[0]
 [[ -f "${REPO_DIR}/.env" ]] || \
   error ".env not found. Copy .env.example and fill in your secrets."
 
-# Load env vars (needed for envsubst and validation)
+# Load env vars
 set -a; source "${REPO_DIR}/.env"; set +a
 
 # Validate required vars
@@ -52,9 +52,8 @@ REQUIRED_VARS=(
   NADIRCLAW_PORT
   NADIRCLAW_SIMPLE_MODEL
   NADIRCLAW_COMPLEX_MODEL
-  TELEGRAM_BOT_TOKEN_HEALTH
-  TELEGRAM_BOT_TOKEN_STOCKS
-  TELEGRAM_BOT_TOKEN_EMAIL
+  OPENROUTER_API_KEY
+  TELEGRAM_BOT_TOKEN
   TELEGRAM_ALLOWED_USER_ID
   OPENCLAW_WORKSPACE_ROOT
 )
@@ -88,10 +87,11 @@ mkdir -p "${OPENCLAW_WORKSPACE_ROOT}"
 for AGENT in "${AGENTS[@]}"; do
   SRC="${REPO_DIR}/agents/${AGENT}"
   DEST="${OPENCLAW_WORKSPACE_ROOT}/workspace-${AGENT}"
-  mkdir -p "${DEST}/memory"
+  mkdir -p "${DEST}/memory" "${DEST}/skills"
 
-  # Sync workspace files (preserve MEMORY.md and memory/ if they already exist
-  # on the VM — we don't want to overwrite runtime-updated memory with stubs)
+  # Sync workspace files.
+  # MEMORY.md and memory/ are excluded — they grow at runtime on the VM
+  # and must not be overwritten by stubs from the repo on re-deploys.
   rsync -a --exclude='MEMORY.md' --exclude='memory/' "${SRC}/" "${DEST}/"
 
   # Seed MEMORY.md only if it doesn't exist yet (first deploy)
@@ -100,17 +100,17 @@ for AGENT in "${AGENTS[@]}"; do
     log "  ${AGENT}: seeded MEMORY.md (first deploy)"
   fi
 
-  # Symlink the shared USER.md into every workspace
+  # Symlink shared USER.md into every workspace
   ln -sf "${OPENCLAW_WORKSPACE_ROOT}/USER.md" "${DEST}/USER.md"
 
-  log "  ${AGENT}: workspace synced → ${DEST}"
+  log "  ${AGENT}: synced → ${DEST}"
 done
 
-# Copy shared USER.md (only if not customised yet)
+# Copy shared USER.md on first deploy
 SHARED_USER_MD="${OPENCLAW_WORKSPACE_ROOT}/USER.md"
 if [[ ! -f "${SHARED_USER_MD}" ]]; then
   cp "${REPO_DIR}/agents/USER.md" "${SHARED_USER_MD}"
-  log "Seeded shared USER.md (fill it in to personalise all agents)."
+  log "Seeded shared USER.md — fill it in to personalise all agents."
 fi
 
 # ── Render openclaw.json from template ───────────────────────────────────────
@@ -141,3 +141,8 @@ restart_service "nadirclaw"
 restart_service "personal-os"
 
 log "Deployment complete."
+log ""
+log "Talk to your bots:"
+log "  → Open Telegram and message your bot"
+log "  → Default agent is Health. Switch with /agent <id>"
+log "  → Available agents: ${AGENTS[*]}"
