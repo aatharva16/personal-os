@@ -1,0 +1,29 @@
+[Unit]
+Description=Personal AI OS — OpenClaw Gateway Daemon
+Documentation=https://github.com/openclaw/openclaw
+After=network-online.target nadirclaw.service
+Wants=network-online.target
+Requires=nadirclaw.service
+
+[Service]
+Type=simple
+User=clawuser
+Group=clawuser
+WorkingDirectory=/home/clawuser/.openclaw
+
+# openclaw reads openclaw.json from the working directory or ~/.openclaw/
+ExecStart=/usr/bin/env openclaw daemon --config /home/clawuser/.openclaw/openclaw.json
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=personal-os
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/clawuser/.openclaw
+
+[Install]
+WantedBy=multi-user.target

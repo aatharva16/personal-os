@@ -1,0 +1,30 @@
+[Unit]
+Description=NadirClaw — Intelligent LLM Router Proxy
+Documentation=https://github.com/doramirdor/NadirClaw
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=clawuser
+Group=clawuser
+WorkingDirectory=/home/clawuser
+
+# Load .env for API keys and model config
+EnvironmentFile=/home/clawuser/personal-os/.env
+
+ExecStart=/usr/local/bin/nadirclaw serve
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nadirclaw
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/clawuser/.nadirclaw
+
+[Install]
+WantedBy=multi-user.target

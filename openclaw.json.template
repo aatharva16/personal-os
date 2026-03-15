@@ -1,0 +1,111 @@
+// openclaw.json — Personal AI OS Gateway Configuration
+// Template file: deploy.sh runs `envsubst` to produce ~/.openclaw/openclaw.json
+// DO NOT commit the rendered file — only commit this template.
+// See .env.example for all required environment variables.
+
+{
+  // ── Model Providers ────────────────────────────────────────────────────────
+  // All inference is routed through NadirClaw, which classifies prompt
+  // complexity and forwards to Gemini Flash (cheap) or Claude Sonnet (smart).
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "nadirclaw": {
+        "baseUrl": "http://localhost:${NADIRCLAW_PORT}/v1",
+        "apiKey": "local",
+        "api": "openai-completions",
+        "models": [
+          {
+            "id": "auto",
+            "name": "auto (NadirClaw routed)",
+            "input": ["text"],
+            "contextWindow": 200000,
+            "maxTokens": 8096
+          }
+        ]
+      }
+    }
+  },
+
+  // ── Agent Definitions ──────────────────────────────────────────────────────
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "nadirclaw/auto"
+      },
+      "compaction": {
+        "mode": "default",
+        "memoryFlush": {
+          "enabled": true,
+          "softThresholdTokens": 8000,
+          "prompt": "Extract key facts, decisions, open items and preferences into memory/YYYY-MM-DD.md. Be terse — bullet points only. Omit small talk.",
+          "systemPrompt": "You are a memory curator. Extract only what is worth remembering long-term."
+        }
+      },
+      "heartbeat": {
+        "model": "nadirclaw/auto",
+        "intervalMinutes": 55
+      },
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "6h",
+        "keepLastAssistants": 3
+      },
+      "maxConcurrent": 2,
+      "subagents": { "maxConcurrent": 4 }
+    },
+    "list": [
+      {
+        "id": "health",
+        "name": "Vita — Health",
+        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-health"
+      },
+      {
+        "id": "stocks",
+        "name": "Quant — Stocks",
+        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-stocks"
+      },
+      {
+        "id": "email",
+        "name": "Hermes — Email",
+        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-email"
+      }
+    ]
+  },
+
+  // ── Telegram Channel ───────────────────────────────────────────────────────
+  // Each agent gets its own bot (created with @BotFather).
+  // Only TELEGRAM_ALLOWED_USER_ID can DM any of the bots.
+  "channels": {
+    "telegram": {
+      "dmPolicy": "allowlist",
+      "groupPolicy": "allowlist",
+      "streamMode": "partial",
+      "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"],
+      "accounts": {
+        "health": { "botToken": "${TELEGRAM_BOT_TOKEN_HEALTH}" },
+        "stocks": { "botToken": "${TELEGRAM_BOT_TOKEN_STOCKS}" },
+        "email":  { "botToken": "${TELEGRAM_BOT_TOKEN_EMAIL}"  }
+      }
+    }
+  },
+
+  // ── Agent ↔ Channel Bindings ───────────────────────────────────────────────
+  "bindings": [
+    { "agentId": "health", "match": { "channel": "telegram", "accountId": "health" } },
+    { "agentId": "stocks", "match": { "channel": "telegram", "accountId": "stocks" } },
+    { "agentId": "email",  "match": { "channel": "telegram", "accountId": "email"  } }
+  ],
+
+  // ── Gateway ────────────────────────────────────────────────────────────────
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback"
+  },
+
+  // ── Logging ────────────────────────────────────────────────────────────────
+  "logging": {
+    "redactSensitive": "tools"
+  }
+}
