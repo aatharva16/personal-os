@@ -1,9 +1,8 @@
 [Unit]
 Description=Personal AI OS — OpenClaw Gateway Daemon
 Documentation=https://github.com/openclaw/openclaw
-After=network-online.target nadirclaw.service
+After=network-online.target
 Wants=network-online.target
-Requires=nadirclaw.service
 
 [Service]
 Type=simple

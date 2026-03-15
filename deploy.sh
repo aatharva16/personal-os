@@ -34,7 +34,6 @@ log "Pre-flight checks…"
 
 command -v git     >/dev/null 2>&1 || error "git is not installed."
 command -v node    >/dev/null 2>&1 || error "Node.js is not installed."
-command -v python3 >/dev/null 2>&1 || error "Python 3 is not installed."
 command -v envsubst >/dev/null 2>&1 || error "envsubst not found. Run: sudo apt install gettext-base"
 
 NODE_VERSION=$(node -e "process.stdout.write(process.versions.node.split('.')[0])")
@@ -49,9 +48,6 @@ set -a; source "${REPO_DIR}/.env"; set +a
 
 # Validate required vars
 REQUIRED_VARS=(
-  NADIRCLAW_PORT
-  NADIRCLAW_SIMPLE_MODEL
-  NADIRCLAW_COMPLEX_MODEL
   OPENROUTER_API_KEY
   TELEGRAM_BOT_TOKEN
   TELEGRAM_ALLOWED_USER_ID
@@ -73,9 +69,6 @@ log "At commit: $(git rev-parse --short HEAD) — $(git log -1 --pretty='%s')"
 if [[ "${SKIP_INSTALL}" == false ]]; then
   log "Installing OpenClaw (npm)…"
   npm install -g openclaw@latest
-
-  log "Installing NadirClaw (pip)…"
-  pip3 install --upgrade nadirclaw
 else
   log "Skipping installs (--skip-install)."
 fi
@@ -119,18 +112,6 @@ OPENCLAW_CONFIG="${OPENCLAW_WORKSPACE_ROOT}/openclaw.json"
 envsubst < "${REPO_DIR}/openclaw.json.template" > "${OPENCLAW_CONFIG}"
 log "Wrote ${OPENCLAW_CONFIG}"
 
-# ── Create NadirClaw config ───────────────────────────────────────────────────
-log "Writing NadirClaw config to ~/.nadirclaw/.env…"
-mkdir -p "${HOME}/.nadirclaw"
-cat > "${HOME}/.nadirclaw/.env" <<EOF
-NADIRCLAW_PORT=${NADIRCLAW_PORT}
-NADIRCLAW_SIMPLE_MODEL=${NADIRCLAW_SIMPLE_MODEL}
-NADIRCLAW_COMPLEX_MODEL=${NADIRCLAW_COMPLEX_MODEL}
-OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-EOF
-[[ -n "${NADIRCLAW_CONFIDENCE_THRESHOLD:-}" ]] && \
-  echo "NADIRCLAW_CONFIDENCE_THRESHOLD=${NADIRCLAW_CONFIDENCE_THRESHOLD}" >> "${HOME}/.nadirclaw/.env"
-
 # ── Restart services ──────────────────────────────────────────────────────────
 restart_service() {
   local SVC="$1"
@@ -149,7 +130,6 @@ restart_service() {
 }
 
 log "Restarting services…"
-restart_service "nadirclaw"
 restart_service "personal-os"
 
 log "Deployment complete."
