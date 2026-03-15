@@ -54,10 +54,10 @@
         "fallbacks": []
       },
       "heartbeat": {
-        // Native per-agent heartbeat is disabled — it has a known multi-agent
-        // bug where all agents fire on the main agent's cycle. Use the systemd
-        // timer (personal-os-heartbeat.timer) + HEARTBEAT.md files instead.
-        "enabled": false
+        // Pinned to the free model so native heartbeats (if they fire) never
+        // consume auto-router budget. Primary heartbeat scheduling is handled
+        // by the systemd timer (personal-os-heartbeat.timer) + HEARTBEAT.md.
+        "model": "openrouter/${HEARTBEAT_MODEL_ID}"
       },
       "compaction": {
         "mode": "default",
@@ -98,46 +98,29 @@
   // ── Channels ───────────────────────────────────────────────────────────────
   "channels": {
     // ── Telegram ─────────────────────────────────────────────────────────────
-    // One dedicated bot per agent. Create each bot with @BotFather and set the
-    // corresponding token in .env. Only TELEGRAM_ALLOWED_USER_ID can DM any bot.
+    // Single bot — all DMs go to the Chief of Staff, which routes to specialists.
+    // Only TELEGRAM_ALLOWED_USER_ID can DM the bot.
+    // Note: OpenClaw supports only one botToken per telegram channel.
+    // Access the News agent directly via the WebChat UI.
     "telegram": {
       "enabled": true,
-      "bots": [
-        { "id": "chief-bot", "botToken": "${TELEGRAM_BOT_TOKEN_CHIEF}" },
-        { "id": "news-bot",  "botToken": "${TELEGRAM_BOT_TOKEN_NEWS}" }
-      ],
+      "botToken": "${TELEGRAM_BOT_TOKEN}",
       "dmPolicy": "allowlist",
       "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"],
       "streaming": "partial"
-    },
-
-    // ── WebChat (Control UI) ──────────────────────────────────────────────────
-    // Browser-based control panel. Accessible via token auth.
-    // Local:      http://localhost:${WEBCHAT_PORT}
-    // Production: http://<tailscale-ip>:${WEBCHAT_PORT}  (Tailscale VPN required)
-    "webchat": {
-      "enabled": true,
-      "token": "${WEBCHAT_TOKEN}",
-      "port": "${WEBCHAT_PORT}"
     }
+
+    // WebChat (Control UI) is auto-configured by OpenClaw when the gateway
+    // detects no explicit webchat channel config. Access it at the gateway URL.
+    // To pin a token, add: "webchat": { "token": "${WEBCHAT_TOKEN}" }
   },
 
   // ── Agent Bindings ─────────────────────────────────────────────────────────
-  // Each Telegram bot DM is routed to its dedicated agent.
-  // WebChat sessions are also handled here (default: chief).
+  // All Telegram DMs → Chief of Staff (which routes to specialists).
   "bindings": [
     {
       "agentId": "chief",
-      "match": { "channel": "telegram", "botId": "chief-bot" }
-    },
-    {
-      "agentId": "news",
-      "match": { "channel": "telegram", "botId": "news-bot" }
-    },
-    {
-      // WebChat UI defaults to the Chief of Staff.
-      "agentId": "chief",
-      "match": { "channel": "webchat" }
+      "match": { "channel": "telegram" }
     }
   ],
 
