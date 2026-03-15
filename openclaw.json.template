@@ -5,14 +5,15 @@
 
 {
   // ── Model Providers ────────────────────────────────────────────────────────
-  // All inference goes through OpenRouter. Regular agent messages use
-  // openrouter/auto, which is OpenRouter's server-side intelligent router
-  // (powered by NotDiamond) — it picks the most cost-effective model per
-  // prompt automatically. Model restrictions (Anthropic-only, no Opus) are
-  // configured as account-wide defaults in the OpenRouter Plugins dashboard.
+  // All inference goes through OpenRouter.
   //
-  // Heartbeats are pinned to a free model so they never consume the auto
-  // router's budget allocation.
+  // Agent messages use openrouter/auto — OpenRouter's server-side intelligent
+  // router (powered by NotDiamond). It picks the most cost-effective model per
+  // prompt automatically. Configure model restrictions (e.g. Anthropic-only,
+  // no Opus) in the OpenRouter Plugins dashboard as account-wide defaults.
+  //
+  // Heartbeats are pinned to a hardcoded free model so they never consume the
+  // auto-router's budget.
   "models": {
     "mode": "merge",
     "providers": {
@@ -22,10 +23,8 @@
         "api": "openai-completions",
         "models": [
           {
-            // openrouter/auto — OpenRouter's server-side intelligent router.
-            // Routes each prompt to the most cost-effective model automatically.
-            // Restrict the model pool (Anthropic-only, no Opus) in the
-            // OpenRouter Plugins settings page as an account-wide default.
+            // openrouter/auto — server-side intelligent routing.
+            // Picks the most cost-effective model per prompt automatically.
             "id": "auto",
             "name": "OpenRouter Auto (intelligent routing)",
             "input": ["text"],
@@ -33,8 +32,8 @@
             "maxTokens": 8096
           },
           {
-            // Free tier model used for heartbeats — zero cost, no rate-limit surprises.
-            // Controlled by HEARTBEAT_MODEL_ID in .env (bare OpenRouter model ID, no "openrouter/" prefix).
+            // Free tier model used exclusively for heartbeats — zero cost.
+            // Set HEARTBEAT_MODEL_ID in .env (bare OpenRouter model ID, no prefix).
             "id": "${HEARTBEAT_MODEL_ID}",
             "name": "Heartbeat model (free)",
             "input": ["text"],
@@ -47,18 +46,18 @@
   },
 
   // ── Agent Definitions ──────────────────────────────────────────────────────
-  // Default model is OpenRouter Auto — server-side intelligent routing picks
-  // the most cost-effective model per prompt automatically.
   "agents": {
     "defaults": {
       "model": {
+        // openrouter/auto handles cheap-vs-premium routing server-side.
         "primary": "openrouter/auto",
         "fallbacks": []
       },
       "heartbeat": {
-        // Pinned to a free OpenRouter model — heartbeats never go through the
-        // auto router so they never consume budget.
-        "model": "openrouter/${HEARTBEAT_MODEL_ID}"
+        // Native per-agent heartbeat is disabled — it has a known multi-agent
+        // bug where all agents fire on the main agent's cycle. Use the systemd
+        // timer (personal-os-heartbeat.timer) + HEARTBEAT.md files instead.
+        "enabled": false
       },
       "compaction": {
         "mode": "default",
@@ -82,62 +81,69 @@
 
     "list": [
       {
-        "id": "health",
-        "name": "Health Tracker",
-        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-health"
+        // Chief of Staff — primary entry point; routes to specialist agents.
+        "id": "chief",
+        "name": "Chief of Staff",
+        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-chief"
       },
       {
-        "id": "stocks",
-        "name": "Stock Analyser",
-        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-stocks"
-      },
-      {
-        "id": "portfolio",
-        "name": "Portfolio Checker",
-        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-portfolio"
-      },
-      {
+        // News — daily briefings, current events, tech/markets/geopolitics.
         "id": "news",
-        "name": "News Feed",
+        "name": "News",
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-news"
-      },
-      {
-        "id": "jobs",
-        "name": "Job Searcher",
-        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-jobs"
-      },
-      {
-        "id": "email",
-        "name": "Email Organiser",
-        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-email"
       }
     ]
   },
 
-  // ── Telegram Channel ───────────────────────────────────────────────────────
-  // Single bot for all agents. Switch active agent with /agent <id> in chat.
-  // Only TELEGRAM_ALLOWED_USER_ID can message the bot.
+  // ── Channels ───────────────────────────────────────────────────────────────
   "channels": {
+    // ── Telegram ─────────────────────────────────────────────────────────────
+    // One dedicated bot per agent. Create each bot with @BotFather and set the
+    // corresponding token in .env. Only TELEGRAM_ALLOWED_USER_ID can DM any bot.
     "telegram": {
       "enabled": true,
-      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "bots": [
+        { "id": "chief-bot", "botToken": "${TELEGRAM_BOT_TOKEN_CHIEF}" },
+        { "id": "news-bot",  "botToken": "${TELEGRAM_BOT_TOKEN_NEWS}" }
+      ],
       "dmPolicy": "allowlist",
       "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"],
       "streaming": "partial"
+    },
+
+    // ── WebChat (Control UI) ──────────────────────────────────────────────────
+    // Browser-based control panel. Accessible via token auth.
+    // Local:      http://localhost:${WEBCHAT_PORT}
+    // Production: http://<tailscale-ip>:${WEBCHAT_PORT}  (Tailscale VPN required)
+    "webchat": {
+      "enabled": true,
+      "token": "${WEBCHAT_TOKEN}",
+      "port": "${WEBCHAT_PORT}"
     }
   },
 
-  // ── Default Agent Binding ─────────────────────────────────────────────────
-  // All Telegram DMs go to health by default.
-  // User switches with /agent <id> (e.g. /agent stocks, /agent email).
+  // ── Agent Bindings ─────────────────────────────────────────────────────────
+  // Each Telegram bot DM is routed to its dedicated agent.
+  // WebChat sessions are also handled here (default: chief).
   "bindings": [
     {
-      "agentId": "health",
-      "match": { "channel": "telegram" }
+      "agentId": "chief",
+      "match": { "channel": "telegram", "botId": "chief-bot" }
+    },
+    {
+      "agentId": "news",
+      "match": { "channel": "telegram", "botId": "news-bot" }
+    },
+    {
+      // WebChat UI defaults to the Chief of Staff.
+      "agentId": "chief",
+      "match": { "channel": "webchat" }
     }
   ],
 
   // ── Gateway ────────────────────────────────────────────────────────────────
+  // The main gateway port stays loopback (internal only).
+  // WebChat binds on its own port (see channels.webchat above).
   "gateway": {
     "port": 18789,
     "mode": "local",

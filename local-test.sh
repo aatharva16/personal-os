@@ -3,11 +3,10 @@
 # local-test.sh — Personal AI OS Local E2E Test
 #
 # Starts OpenClaw on your local machine (no systemd, no VM).
-# Your Telegram bot will respond to messages in real time.
+# Your Telegram bots will respond to messages in real time.
 #
 # Prerequisites:
-#   - .env file populated with real OPENROUTER_API_KEY, TELEGRAM_BOT_TOKEN,
-#     TELEGRAM_ALLOWED_USER_ID (copy .env.example and fill in values)
+#   - .env file populated with real secrets (copy .env.example and fill in)
 #   - Node.js v22+, envsubst (apt install gettext-base)
 #
 # Usage:
@@ -21,7 +20,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEST_WORKSPACE="${REPO_DIR}/.test-workspace"
 NODE_MIN_VERSION=22
 
-AGENTS=(health stocks portfolio news jobs email)
+AGENTS=(chief news)
 
 # ── Parse args ────────────────────────────────────────────────────────────────
 SKIP_INSTALL=false
@@ -46,15 +45,19 @@ NODE_VERSION=$(node -e "process.stdout.write(process.versions.node.split('.')[0]
   error "Node.js v${NODE_MIN_VERSION}+ required (found v${NODE_VERSION})."
 
 [[ -f "${REPO_DIR}/.env" ]] || \
-  error ".env not found. Run: cp .env.example .env  then fill in OPENROUTER_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_ALLOWED_USER_ID"
+  error ".env not found. Run: cp .env.example .env  then fill in your secrets."
 
 # Load and validate env vars
 set -a; source "${REPO_DIR}/.env"; set +a
 
 REQUIRED_VARS=(
   OPENROUTER_API_KEY
-  TELEGRAM_BOT_TOKEN
+  HEARTBEAT_MODEL_ID
+  TELEGRAM_BOT_TOKEN_CHIEF
+  TELEGRAM_BOT_TOKEN_NEWS
   TELEGRAM_ALLOWED_USER_ID
+  WEBCHAT_TOKEN
+  WEBCHAT_PORT
 )
 for VAR in "${REQUIRED_VARS[@]}"; do
   [[ -n "${!VAR:-}" ]] || error "Required env var '${VAR}' is not set in .env"
@@ -75,7 +78,7 @@ else
   log "Skipping installs (--skip-install)."
 fi
 
-command -v openclaw  >/dev/null 2>&1 || error "openclaw not found after install. Check your PATH."
+command -v openclaw >/dev/null 2>&1 || error "openclaw not found after install. Check your PATH."
 
 # ── Set up local test workspace ───────────────────────────────────────────────
 log "Setting up test workspace → ${TEST_WORKSPACE}…"
@@ -110,7 +113,7 @@ OPENCLAW_PID=""
 cleanup() {
   echo ""
   log "Shutting down…"
-  [[ -n "${OPENCLAW_PID}"  ]] && kill "${OPENCLAW_PID}"  2>/dev/null || true
+  [[ -n "${OPENCLAW_PID}" ]] && kill "${OPENCLAW_PID}" 2>/dev/null || true
   wait "${OPENCLAW_PID}" 2>/dev/null || true
   log "Stopped. Logs preserved at: ${TEST_WORKSPACE}/openclaw.log"
 }
@@ -146,15 +149,16 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "  Personal AI OS — Local Test Running"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "  Open Telegram and message your bot:"
+echo "  Telegram:"
+echo "    → Message your Chief of Staff bot for general tasks"
+echo "    → Message your News bot for direct news queries"
 echo ""
-echo "    > Hello                 ← talks to Vita (Health)"
-echo "    > /agent stocks         ← switch to Quant (Stocks)"
-echo "    > /agent email          ← switch to Hermes (Email)"
-echo "    > /agent portfolio      ← switch to Portfolio"
-echo "    > /new                  ← reset the session"
+echo "  Web Control UI:"
+echo "    → http://localhost:${WEBCHAT_PORT}"
+echo "    → Token: ${WEBCHAT_TOKEN}"
 echo ""
 echo "  Workspace: ${TEST_WORKSPACE}"
+echo "  Logs:      ${TEST_WORKSPACE}/openclaw.log"
 echo ""
 echo "  Press Ctrl+C to stop."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

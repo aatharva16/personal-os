@@ -14,7 +14,7 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BRANCH="${BRANCH:-main}"
 NODE_MIN_VERSION=22
 
-AGENTS=(health stocks portfolio news jobs email)
+AGENTS=(chief news)
 
 # ── Parse args ────────────────────────────────────────────────────────────────
 SKIP_INSTALL=false
@@ -32,8 +32,8 @@ error() { echo "[deploy] ERROR: $*" >&2; exit 1; }
 # ── Pre-flight ────────────────────────────────────────────────────────────────
 log "Pre-flight checks…"
 
-command -v git     >/dev/null 2>&1 || error "git is not installed."
-command -v node    >/dev/null 2>&1 || error "Node.js is not installed."
+command -v git      >/dev/null 2>&1 || error "git is not installed."
+command -v node     >/dev/null 2>&1 || error "Node.js is not installed."
 command -v envsubst >/dev/null 2>&1 || error "envsubst not found. Run: sudo apt install gettext-base"
 
 NODE_VERSION=$(node -e "process.stdout.write(process.versions.node.split('.')[0])")
@@ -49,8 +49,12 @@ set -a; source "${REPO_DIR}/.env"; set +a
 # Validate required vars
 REQUIRED_VARS=(
   OPENROUTER_API_KEY
-  TELEGRAM_BOT_TOKEN
+  HEARTBEAT_MODEL_ID
+  TELEGRAM_BOT_TOKEN_CHIEF
+  TELEGRAM_BOT_TOKEN_NEWS
   TELEGRAM_ALLOWED_USER_ID
+  WEBCHAT_TOKEN
+  WEBCHAT_PORT
   OPENCLAW_WORKSPACE_ROOT
 )
 for VAR in "${REQUIRED_VARS[@]}"; do
@@ -133,7 +137,6 @@ log "Restarting services…"
 restart_service "personal-os"
 
 # Ensure the heartbeat timer is enabled and running.
-# restart_service() is for persistent services; timers need enable + start.
 log "Enabling heartbeat timer…"
 sudo systemctl enable personal-os-heartbeat.timer 2>/dev/null || true
 if systemctl is-active --quiet "personal-os-heartbeat.timer"; then
@@ -148,9 +151,21 @@ else
   error "personal-os-heartbeat.timer failed to start. Check: journalctl -u personal-os-heartbeat -n 50"
 fi
 
+# ── Print access info ─────────────────────────────────────────────────────────
+TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")
+
+log ""
 log "Deployment complete."
 log ""
-log "Talk to your bots:"
-log "  → Open Telegram and message your bot"
-log "  → Default agent is Health. Switch with /agent <id>"
-log "  → Available agents: ${AGENTS[*]}"
+log "  Chief of Staff bot → message it on Telegram"
+log "  News bot           → message it on Telegram"
+if [[ -n "${TAILSCALE_IP}" ]]; then
+  log "  Web Control UI     → http://${TAILSCALE_IP}:${WEBCHAT_PORT}"
+  log "  WebChat token      → ${WEBCHAT_TOKEN}"
+else
+  log "  Web Control UI     → Tailscale not detected. Once connected:"
+  log "                       http://<tailscale-ip>:${WEBCHAT_PORT}"
+  log "  WebChat token      → ${WEBCHAT_TOKEN}"
+  log "  Tailscale setup    → curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up"
+fi
+log ""
