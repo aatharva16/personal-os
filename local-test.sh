@@ -53,11 +53,8 @@ set -a; source "${REPO_DIR}/.env"; set +a
 REQUIRED_VARS=(
   OPENROUTER_API_KEY
   HEARTBEAT_MODEL_ID
-  TELEGRAM_BOT_TOKEN_CHIEF
-  TELEGRAM_BOT_TOKEN_NEWS
+  TELEGRAM_BOT_TOKEN
   TELEGRAM_ALLOWED_USER_ID
-  WEBCHAT_TOKEN
-  WEBCHAT_PORT
 )
 for VAR in "${REQUIRED_VARS[@]}"; do
   [[ -n "${!VAR:-}" ]] || error "Required env var '${VAR}' is not set in .env"
@@ -150,12 +147,11 @@ echo "  Personal AI OS — Local Test Running"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "  Telegram:"
-echo "    → Message your Chief of Staff bot for general tasks"
-echo "    → Message your News bot for direct news queries"
+echo "    → Message your bot (Chief of Staff handles all routing)"
 echo ""
 echo "  Web Control UI:"
-echo "    → http://localhost:${WEBCHAT_PORT}"
-echo "    → Token: ${WEBCHAT_TOKEN}"
+echo "    → http://localhost:18789"
+echo "    → Paste the gateway token shown in the logs above"
 echo ""
 echo "  Workspace: ${TEST_WORKSPACE}"
 echo "  Logs:      ${TEST_WORKSPACE}/openclaw.log"

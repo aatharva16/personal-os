@@ -40,7 +40,7 @@ Browser (Tailscale)   ───→  http://<tailscale-ip>:18790  (Web Control UI
 | Node.js | v22+ |
 | OpenClaw | latest (`npm install -g openclaw@latest`) |
 | OpenRouter account | One API key — [openrouter.ai](https://openrouter.ai) |
-| Telegram bots | 2 bots from [@BotFather](https://t.me/BotFather) |
+| Telegram bot | 1 bot from [@BotFather](https://t.me/BotFather) |
 
 ## Quickstart (Local Dev)
 
@@ -51,14 +51,10 @@ cp .env.example .env
 # Fill in:
 #   OPENROUTER_API_KEY
 #   HEARTBEAT_MODEL_ID
-#   TELEGRAM_BOT_TOKEN_CHIEF
-#   TELEGRAM_BOT_TOKEN_NEWS
+#   TELEGRAM_BOT_TOKEN
 #   TELEGRAM_ALLOWED_USER_ID
-#   WEBCHAT_PORT=18790
-#   WEBCHAT_TOKEN=$(openssl rand -hex 32)
 
 ./local-test.sh
-# Prints the WebChat URL + token at startup.
 # Press Ctrl+C to stop.
 ```
 
@@ -113,14 +109,14 @@ journalctl -u personal-os-heartbeat # heartbeat run history
 
 ## Web Control UI
 
-The Web Control UI lets you see all agent sessions and memory state in a browser.
+OpenClaw auto-configures a WebChat control panel at the gateway URL. No extra config needed.
 
 | Environment | URL |
 |---|---|
-| Local | `http://localhost:18790` |
-| Production | `http://<tailscale-ip>:18790` |
+| Local | `http://localhost:18789` |
+| Production | `http://<tailscale-ip>:18789` (Tailscale VPN required) |
 
-Enter the `WEBCHAT_TOKEN` from your `.env` when prompted. The token is also printed by both `local-test.sh` and `deploy.sh` for easy copy-paste.
+On first access you'll be prompted for a gateway token. Copy it from the OpenClaw startup logs (look for a line containing `token` or `dashboard URL`).
 
 ## Configuration Reference
 
@@ -128,11 +124,8 @@ Enter the `WEBCHAT_TOKEN` from your `.env` when prompted. The token is also prin
 |---|---|
 | `OPENROUTER_API_KEY` | OpenRouter API key |
 | `HEARTBEAT_MODEL_ID` | Free OpenRouter model ID for heartbeats (no prefix) |
-| `TELEGRAM_BOT_TOKEN_CHIEF` | Chief of Staff bot token (from @BotFather) |
-| `TELEGRAM_BOT_TOKEN_NEWS` | News bot token (from @BotFather) |
+| `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather — all messages go to Chief of Staff |
 | `TELEGRAM_ALLOWED_USER_ID` | Your numeric Telegram user ID (bot ignores everyone else) |
-| `WEBCHAT_PORT` | Port for Web Control UI (default: 18790) |
-| `WEBCHAT_TOKEN` | Auth token for Web Control UI |
 | `OPENCLAW_WORKSPACE_ROOT` | Where agent workspaces live on the VM |
 
 > **Model routing:** Agent messages use `openrouter/auto`. To restrict the model pool (e.g. Anthropic-only, no Opus), configure defaults in the [OpenRouter Plugins dashboard](https://openrouter.ai/settings/plugins).
