@@ -119,6 +119,18 @@ OPENCLAW_CONFIG="${OPENCLAW_WORKSPACE_ROOT}/openclaw.json"
 envsubst < "${REPO_DIR}/openclaw.json.template" > "${OPENCLAW_CONFIG}"
 log "Wrote ${OPENCLAW_CONFIG}"
 
+# ── Create NadirClaw config ───────────────────────────────────────────────────
+log "Writing NadirClaw config to ~/.nadirclaw/.env…"
+mkdir -p "${HOME}/.nadirclaw"
+cat > "${HOME}/.nadirclaw/.env" <<EOF
+NADIRCLAW_PORT=${NADIRCLAW_PORT}
+NADIRCLAW_SIMPLE_MODEL=${NADIRCLAW_SIMPLE_MODEL}
+NADIRCLAW_COMPLEX_MODEL=${NADIRCLAW_COMPLEX_MODEL}
+OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+EOF
+[[ -n "${NADIRCLAW_CONFIDENCE_THRESHOLD:-}" ]] && \
+  echo "NADIRCLAW_CONFIDENCE_THRESHOLD=${NADIRCLAW_CONFIDENCE_THRESHOLD}" >> "${HOME}/.nadirclaw/.env"
+
 # ── Restart services ──────────────────────────────────────────────────────────
 restart_service() {
   local SVC="$1"
