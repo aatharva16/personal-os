@@ -36,9 +36,9 @@
         "models": [
           {
             // Free tier model used for heartbeats — zero cost, no rate-limit surprises.
-            // Controlled by HEARTBEAT_MODEL in .env (strip the "openrouter/" prefix for the id).
+            // Controlled by HEARTBEAT_MODEL_ID in .env (bare OpenRouter model ID, no "openrouter/" prefix).
             "id": "${HEARTBEAT_MODEL_ID}",
-            "name": "Llama 4 Scout (free)",
+            "name": "Heartbeat model (free)",
             "input": ["text"],
             "contextWindow": 10000000,
             "maxTokens": 8096
