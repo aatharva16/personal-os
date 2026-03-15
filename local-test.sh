@@ -55,6 +55,7 @@ REQUIRED_VARS=(
   HEARTBEAT_MODEL_ID
   TELEGRAM_BOT_TOKEN
   TELEGRAM_ALLOWED_USER_ID
+  WEBCHAT_TOKEN
 )
 for VAR in "${REQUIRED_VARS[@]}"; do
   [[ -n "${!VAR:-}" ]] || error "Required env var '${VAR}' is not set in .env"
@@ -150,8 +151,8 @@ echo "  Telegram:"
 echo "    → Message your bot (Chief of Staff handles all routing)"
 echo ""
 echo "  Web Control UI:"
-echo "    → http://localhost:18789"
-echo "    → Paste the gateway token shown in the logs above"
+echo "    → http://localhost:18790"
+echo "    → Token: ${WEBCHAT_TOKEN}"
 echo ""
 echo "  Workspace: ${TEST_WORKSPACE}"
 echo "  Logs:      ${TEST_WORKSPACE}/openclaw.log"
