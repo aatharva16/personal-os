@@ -8,7 +8,7 @@
 # Prerequisites:
 #   - .env file populated with real OPENROUTER_API_KEY, TELEGRAM_BOT_TOKEN,
 #     TELEGRAM_ALLOWED_USER_ID (copy .env.example and fill in values)
-#   - Node.js v22+, Python 3, pip3, envsubst (apt install gettext-base)
+#   - Node.js v22+, Python 3, pipx, envsubst (apt install pipx gettext-base && pipx ensurepath)
 #
 # Usage:
 #   ./local-test.sh [--skip-install]
@@ -40,7 +40,7 @@ log "Pre-flight checks…"
 
 command -v node     >/dev/null 2>&1 || error "Node.js is not installed."
 command -v python3  >/dev/null 2>&1 || error "Python 3 is not installed."
-command -v pip3     >/dev/null 2>&1 || error "pip3 is not installed."
+command -v pipx     >/dev/null 2>&1 || error "pipx is not installed. Run: sudo apt install pipx && pipx ensurepath"
 command -v envsubst >/dev/null 2>&1 || error "envsubst not found. Run: sudo apt install gettext-base"
 
 NODE_VERSION=$(node -e "process.stdout.write(process.versions.node.split('.')[0])")
@@ -74,7 +74,7 @@ if [[ "${SKIP_INSTALL}" == false ]]; then
   sudo npm install -g openclaw@latest
 
   log "Installing NadirClaw (pip)…"
-  pip3 install --upgrade nadirclaw
+  pipx install nadirclaw --force
 else
   log "Skipping installs (--skip-install)."
 fi
