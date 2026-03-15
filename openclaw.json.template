@@ -36,9 +36,8 @@
         "models": [
           {
             // Free tier model used for heartbeats — zero cost, no rate-limit surprises.
-            // meta-llama/llama-4-scout:free: Meta's lightweight scout model,
-            // 10M context, reliably available on OpenRouter's free tier.
-            "id": "meta-llama/llama-4-scout:free",
+            // Controlled by HEARTBEAT_MODEL in .env (strip the "openrouter/" prefix for the id).
+            "id": "${HEARTBEAT_MODEL_ID}",
             "name": "Llama 4 Scout (free)",
             "input": ["text"],
             "contextWindow": 10000000,
@@ -62,7 +61,7 @@
       "heartbeat": {
         // Pinned to a free OpenRouter model — bypasses NadirClaw so heartbeats
         // never accidentally consume budget from the complex model quota.
-        "model": "openrouter/meta-llama/llama-4-scout:free"
+        "model": "openrouter/${HEARTBEAT_MODEL_ID}"
       },
       "compaction": {
         "mode": "default",
