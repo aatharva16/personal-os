@@ -109,14 +109,14 @@ journalctl -u personal-os-heartbeat # heartbeat run history
 
 ## Web Control UI
 
-OpenClaw auto-configures a WebChat control panel at the gateway URL. No extra config needed.
+Browser-based control panel for monitoring all agents. Token-protected.
 
 | Environment | URL |
 |---|---|
-| Local | `http://localhost:18789` |
-| Production | `http://<tailscale-ip>:18789` (Tailscale VPN required) |
+| Local | `http://localhost:18790` |
+| Production | `http://<tailscale-ip>:18790` (Tailscale VPN required) |
 
-On first access you'll be prompted for a gateway token. Copy it from the OpenClaw startup logs (look for a line containing `token` or `dashboard URL`).
+When prompted for a token, paste `WEBCHAT_TOKEN` from your `.env`.
 
 ## Configuration Reference
 
@@ -126,6 +126,7 @@ On first access you'll be prompted for a gateway token. Copy it from the OpenCla
 | `HEARTBEAT_MODEL_ID` | Free OpenRouter model ID for heartbeats (no prefix) |
 | `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather — all messages go to Chief of Staff |
 | `TELEGRAM_ALLOWED_USER_ID` | Your numeric Telegram user ID (bot ignores everyone else) |
+| `WEBCHAT_TOKEN` | Auth token for Web Control UI (port 18790) — generate with `openssl rand -hex 32` |
 | `OPENCLAW_WORKSPACE_ROOT` | Where agent workspaces live on the VM |
 
 > **Model routing:** Agent messages use `openrouter/auto`. To restrict the model pool (e.g. Anthropic-only, no Opus), configure defaults in the [OpenRouter Plugins dashboard](https://openrouter.ai/settings/plugins).

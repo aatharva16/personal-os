@@ -108,11 +108,18 @@
       "dmPolicy": "allowlist",
       "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"],
       "streaming": "partial"
-    }
+    },
 
-    // WebChat (Control UI) is auto-configured by OpenClaw when the gateway
-    // detects no explicit webchat channel config. Access it at the gateway URL.
-    // To pin a token, add: "webchat": { "token": "${WEBCHAT_TOKEN}" }
+    // ── WebChat (Control UI) ──────────────────────────────────────────────────
+    // Browser-based control panel. Token-protected.
+    // Local:      http://localhost:18790
+    // Production: http://<tailscale-ip>:18790  (Tailscale VPN required)
+    // Paste WEBCHAT_TOKEN from .env when the UI prompts for it.
+    // Port is hardcoded as an integer — envsubst produces strings which OpenClaw rejects.
+    "webchat": {
+      "token": "${WEBCHAT_TOKEN}",
+      "port": 18790
+    }
   },
 
   // ── Agent Bindings ─────────────────────────────────────────────────────────
