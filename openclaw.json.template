@@ -5,35 +5,33 @@
 
 {
   // ── Model Providers ────────────────────────────────────────────────────────
-  // All inference is routed through NadirClaw (localhost:8856), which
-  // classifies prompt complexity and forwards to cheap or expensive models
-  // on OpenRouter. NadirClaw presents an OpenAI-compatible API.
+  // All inference goes through OpenRouter. Regular agent messages use
+  // openrouter/auto, which is OpenRouter's server-side intelligent router
+  // (powered by NotDiamond) — it picks the most cost-effective model per
+  // prompt automatically. Model restrictions (Anthropic-only, no Opus) are
+  // configured as account-wide defaults in the OpenRouter Plugins dashboard.
   //
-  // OpenRouter is also registered directly so that heartbeats can be pinned
-  // to a free model without going through NadirClaw routing (which could
-  // occasionally classify a heartbeat as "complex" and spend budget).
+  // Heartbeats are pinned to a free model so they never consume the auto
+  // router's budget allocation.
   "models": {
     "mode": "merge",
     "providers": {
-      "nadirclaw": {
-        "baseUrl": "http://127.0.0.1:${NADIRCLAW_PORT}/v1",
-        "apiKey": "local",
-        "api": "openai-completions",
-        "models": [
-          {
-            "id": "auto",
-            "name": "auto (NadirClaw routed)",
-            "input": ["text"],
-            "contextWindow": 200000,
-            "maxTokens": 8096
-          }
-        ]
-      },
       "openrouter": {
         "baseUrl": "https://openrouter.ai/api/v1",
         "apiKey": "${OPENROUTER_API_KEY}",
         "api": "openai-completions",
         "models": [
+          {
+            // openrouter/auto — OpenRouter's server-side intelligent router.
+            // Routes each prompt to the most cost-effective model automatically.
+            // Restrict the model pool (Anthropic-only, no Opus) in the
+            // OpenRouter Plugins settings page as an account-wide default.
+            "id": "auto",
+            "name": "OpenRouter Auto (intelligent routing)",
+            "input": ["text"],
+            "contextWindow": 200000,
+            "maxTokens": 8096
+          },
           {
             // Free tier model used for heartbeats — zero cost, no rate-limit surprises.
             // Controlled by HEARTBEAT_MODEL_ID in .env (bare OpenRouter model ID, no "openrouter/" prefix).
@@ -49,18 +47,17 @@
   },
 
   // ── Agent Definitions ──────────────────────────────────────────────────────
-  // Default model is NadirClaw auto-routing (cheap for simple, smart for complex).
-  // Stocks and Portfolio override to complex-only because numerical/financial
-  // accuracy is worth the extra cost.
+  // Default model is OpenRouter Auto — server-side intelligent routing picks
+  // the most cost-effective model per prompt automatically.
   "agents": {
     "defaults": {
       "model": {
-        "primary": "nadirclaw/auto",
+        "primary": "openrouter/auto",
         "fallbacks": []
       },
       "heartbeat": {
-        // Pinned to a free OpenRouter model — bypasses NadirClaw so heartbeats
-        // never accidentally consume budget from the complex model quota.
+        // Pinned to a free OpenRouter model — heartbeats never go through the
+        // auto router so they never consume budget.
         "model": "openrouter/${HEARTBEAT_MODEL_ID}"
       },
       "compaction": {
