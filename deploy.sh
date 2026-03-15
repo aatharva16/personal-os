@@ -52,7 +52,7 @@ REQUIRED_VARS=(
   HEARTBEAT_MODEL_ID
   TELEGRAM_BOT_TOKEN
   TELEGRAM_ALLOWED_USER_ID
-  WEBCHAT_TOKEN
+  GATEWAY_BIND
   OPENCLAW_WORKSPACE_ROOT
 )
 for VAR in "${REQUIRED_VARS[@]}"; do
@@ -155,14 +155,14 @@ TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")
 log ""
 log "Deployment complete."
 log ""
-log "  Telegram bot → message it (Chief of Staff handles all routing)"
+log "  Telegram bot   → message it (Chief of Staff handles all routing)"
 if [[ -n "${TAILSCALE_IP}" ]]; then
-  log "  Web Control UI → http://${TAILSCALE_IP}:18790"
-  log "  WebChat token  → ${WEBCHAT_TOKEN}"
+  log "  Web Control UI → http://${TAILSCALE_IP}:18789"
+  log "                   (paste gateway token from startup logs when prompted)"
 else
   log "  Web Control UI → Tailscale not detected. Once connected:"
-  log "                   http://<tailscale-ip>:18790"
-  log "  WebChat token  → ${WEBCHAT_TOKEN}"
+  log "                   http://<tailscale-ip>:18789"
   log "  Tailscale setup → curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up"
+  log "  Note: set GATEWAY_BIND=0.0.0.0 in .env for Tailscale access"
 fi
 log ""
