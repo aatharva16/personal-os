@@ -114,8 +114,7 @@
   "bindings": [
     {
       "agentId": "health",
-      "match": { "channel": "telegram" },
-      "description": "Default agent — use /agent <id> to switch"
+      "match": { "channel": "telegram" }
     }
   ],
 
