@@ -132,6 +132,22 @@ restart_service() {
 log "Restarting services…"
 restart_service "personal-os"
 
+# Ensure the heartbeat timer is enabled and running.
+# restart_service() is for persistent services; timers need enable + start.
+log "Enabling heartbeat timer…"
+sudo systemctl enable personal-os-heartbeat.timer 2>/dev/null || true
+if systemctl is-active --quiet "personal-os-heartbeat.timer"; then
+  sudo systemctl restart "personal-os-heartbeat.timer"
+else
+  sudo systemctl start "personal-os-heartbeat.timer"
+fi
+if systemctl is-active --quiet "personal-os-heartbeat.timer"; then
+  log "✓ personal-os-heartbeat.timer is running."
+  log "  Next heartbeat: $(systemctl show personal-os-heartbeat.timer --property=NextElapseUSecRealtime --value | xargs -I{} date -d @$(({}/1000000)) 2>/dev/null || echo 'see: systemctl status personal-os-heartbeat.timer')"
+else
+  error "personal-os-heartbeat.timer failed to start. Check: journalctl -u personal-os-heartbeat -n 50"
+fi
+
 log "Deployment complete."
 log ""
 log "Talk to your bots:"
