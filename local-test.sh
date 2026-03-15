@@ -66,6 +66,7 @@ export OPENCLAW_WORKSPACE_ROOT="${TEST_WORKSPACE}"
 export GATEWAY_BIND="loopback"
 # For local testing, allowedOrigins only needs localhost
 export TAILSCALE_IP="127.0.0.1"
+export TAILSCALE_HOSTNAME="localhost"
 
 # ── Install dependencies ──────────────────────────────────────────────────────
 if [[ "${SKIP_INSTALL}" == false ]]; then
