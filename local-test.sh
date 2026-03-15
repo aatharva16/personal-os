@@ -71,7 +71,7 @@ export OPENCLAW_WORKSPACE_ROOT="${TEST_WORKSPACE}"
 # ── Install dependencies ──────────────────────────────────────────────────────
 if [[ "${SKIP_INSTALL}" == false ]]; then
   log "Installing OpenClaw (npm)…"
-  npm install -g openclaw@latest
+  sudo npm install -g openclaw@latest
 
   log "Installing NadirClaw (pip)…"
   pip3 install --upgrade nadirclaw
