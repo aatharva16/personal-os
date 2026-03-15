@@ -1,16 +1,18 @@
 [Unit]
-Description=Personal AI OS — Telegram Bot
-Documentation=https://github.com/personal-os
-After=network-online.target
+Description=Personal AI OS — OpenClaw Gateway Daemon
+Documentation=https://github.com/openclaw/openclaw
+After=network-online.target nadirclaw.service
 Wants=network-online.target
+Requires=nadirclaw.service
 
 [Service]
 Type=simple
 User=clawuser
 Group=clawuser
-WorkingDirectory=/home/clawuser/personal-os
-EnvironmentFile=/home/clawuser/personal-os/.env
-ExecStart=/usr/bin/node src/index.js
+WorkingDirectory=/home/clawuser/.openclaw
+
+# openclaw reads openclaw.json from the working directory or ~/.openclaw/
+ExecStart=/usr/bin/env openclaw daemon --config /home/clawuser/.openclaw/openclaw.json
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
@@ -21,7 +23,7 @@ SyslogIdentifier=personal-os
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/home/clawuser/personal-os/src/agents
+ReadWritePaths=/home/clawuser/.openclaw
 
 [Install]
 WantedBy=multi-user.target
