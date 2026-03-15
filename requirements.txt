@@ -1,6 +1,2 @@
-# NadirClaw — LLM proxy / model router
-# https://github.com/doramirdor/NadirClaw
-#
-# Install: pip install -r requirements.txt
-# Run:     nadirclaw serve
-nadirclaw
+# No Python dependencies required.
+# All inference is handled by OpenClaw (npm) via OpenRouter.
