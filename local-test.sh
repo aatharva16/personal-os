@@ -159,7 +159,7 @@ log "NadirClaw is up."
 
 # ── Start OpenClaw ────────────────────────────────────────────────────────────
 log "Starting OpenClaw daemon…"
-openclaw daemon --config "${TEST_WORKSPACE}/openclaw.json" >> "${TEST_WORKSPACE}/openclaw.log" 2>&1 &
+(cd "${TEST_WORKSPACE}" && openclaw daemon) >> "${TEST_WORKSPACE}/openclaw.log" 2>&1 &
 OPENCLAW_PID=$!
 
 # Poll: check process is alive for up to 15 seconds

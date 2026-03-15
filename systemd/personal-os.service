@@ -12,7 +12,7 @@ Group=clawuser
 WorkingDirectory=/home/clawuser/.openclaw
 
 # openclaw reads openclaw.json from the working directory or ~/.openclaw/
-ExecStart=/usr/bin/env openclaw daemon --config /home/clawuser/.openclaw/openclaw.json
+ExecStart=/usr/bin/env openclaw daemon
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
