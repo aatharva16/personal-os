@@ -127,13 +127,24 @@
   ],
 
   // ── Gateway ────────────────────────────────────────────────────────────────
-  // GATEWAY_BIND controls the network interface:
+  // GATEWAY_BIND controls the network interface (use named modes, not raw IPs):
   //   loopback  = localhost only (default — safe for local dev)
-  //   0.0.0.0   = all interfaces (required for Tailscale/Hetzner production access)
+  //   lan       = all LAN interfaces (required for Tailscale/Hetzner production access)
+  //
+  // controlUi.allowedOrigins — required since v2026.2.26 when bind=lan.
+  // TAILSCALE_IP: set to `tailscale ip -4` output in production .env.
+  // For local dev leave TAILSCALE_IP unset; it falls back to 127.0.0.1 (harmless duplicate).
   "gateway": {
     "port": 18789,
     "mode": "local",
-    "bind": "${GATEWAY_BIND}"
+    "bind": "${GATEWAY_BIND:-loopback}",
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:18789",
+        "http://127.0.0.1:18789",
+        "http://${TAILSCALE_IP:-127.0.0.1}:18789"
+      ]
+    }
   },
 
   // ── Logging ────────────────────────────────────────────────────────────────

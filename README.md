@@ -126,7 +126,8 @@ When prompted for a token, copy the gateway token from the OpenClaw startup logs
 | `HEARTBEAT_MODEL_ID` | Free OpenRouter model ID for heartbeats (no prefix) |
 | `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather — all messages go to Chief of Staff |
 | `TELEGRAM_ALLOWED_USER_ID` | Your numeric Telegram user ID (bot ignores everyone else) |
-| `GATEWAY_BIND` | Network bind: `loopback` (local dev) or `0.0.0.0` (Hetzner + Tailscale) |
+| `GATEWAY_BIND` | Named bind mode: `loopback` (local dev) or `lan` (Hetzner + Tailscale) |
+| `TAILSCALE_IP` | Output of `tailscale ip -4` on the VM — added to WebChat allowedOrigins |
 | `OPENCLAW_WORKSPACE_ROOT` | Where agent workspaces live on the VM |
 
 > **Model routing:** Agent messages use `openrouter/auto`. To restrict the model pool (e.g. Anthropic-only, no Opus), configure defaults in the [OpenRouter Plugins dashboard](https://openrouter.ai/settings/plugins).

@@ -70,7 +70,7 @@ log "At commit: $(git rev-parse --short HEAD) — $(git log -1 --pretty='%s')"
 # ── Install dependencies ──────────────────────────────────────────────────────
 if [[ "${SKIP_INSTALL}" == false ]]; then
   log "Installing OpenClaw (npm)…"
-  npm install -g openclaw@latest
+  sudo npm install -g openclaw@latest
 else
   log "Skipping installs (--skip-install)."
 fi
