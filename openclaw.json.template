@@ -87,6 +87,9 @@
         "id": "chief",
         "name": "Chief of Staff",
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-chief",
+        // Grants chief permission to spawn/send to these agents via
+        // sessions_spawn / sessions_send tools.
+        "agentLinks": [{ "agentId": "news" }],
         // Inherits model/lightContext from agents.defaults.heartbeat.
         "heartbeat": { "every": "30m" }
       },
