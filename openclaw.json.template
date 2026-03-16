@@ -100,7 +100,8 @@
           "every": "4h",
           "lightContext": true,
           "isolatedSession": true,
-          // Route heartbeat-originated Telegram messages through the news bot.
+          // Route heartbeat delivery through the news bot.
+          "target": "telegram",
           "accountId": "news-bot"
         }
       }
@@ -117,11 +118,14 @@
     "telegram": {
       "enabled": true,
       "accounts": {
-        "chief-bot": { "botToken": "${TELEGRAM_BOT_TOKEN_CHIEF}" },
-        "news-bot":  { "botToken": "${TELEGRAM_BOT_TOKEN_NEWS}" }
+        // dmPolicy and allowFrom must be set per-account (not at channel root).
+        // Using "pairing" mode: owner pairs once via the Web Control UI; secure
+        // for personal use. Workaround for OpenClaw bug #25793 (dmPolicy:"allowlist"
+        // silently drops all inbound messages since 2026.2.23; revert to "allowlist"
+        // + allowFrom:["${TELEGRAM_ALLOWED_USER_ID}"] once the bug is fixed).
+        "chief-bot": { "botToken": "${TELEGRAM_BOT_TOKEN_CHIEF}", "dmPolicy": "pairing" },
+        "news-bot":  { "botToken": "${TELEGRAM_BOT_TOKEN_NEWS}",  "dmPolicy": "pairing" }
       },
-      "dmPolicy": "allowlist",
-      "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"],
       "streaming": "partial"
     }
     // WebChat control panel is auto-configured by OpenClaw on the gateway port.
