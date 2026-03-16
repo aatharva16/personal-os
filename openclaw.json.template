@@ -53,12 +53,8 @@
         "primary": "openrouter/auto",
         "fallbacks": []
       },
-      "heartbeat": {
-        // Pinned to the free model so native heartbeats (if they fire) never
-        // consume auto-router budget. Primary heartbeat scheduling is handled
-        // by the systemd timer (personal-os-heartbeat.timer) + HEARTBEAT.md.
-        "model": "openrouter/${HEARTBEAT_MODEL_ID}"
-      },
+      // Heartbeat model is set per-agent (see agents.list) so each agent
+      // controls its own heartbeat behaviour independently.
       "compaction": {
         "mode": "default",
         "memoryFlush": {
@@ -81,16 +77,31 @@
 
     "list": [
       {
-        // Chief of Staff — primary entry point; routes to specialist agents.
+        // Chief of Staff — primary entry point for general requests.
         "id": "chief",
         "name": "Chief of Staff",
-        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-chief"
+        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-chief",
+        "heartbeat": {
+          // Pinned to the free model — zero cost for periodic checks.
+          // Primary scheduling via systemd timer (personal-os-heartbeat.timer).
+          "model": "openrouter/${HEARTBEAT_MODEL_ID}",
+          "lightContext": true,
+          "isolatedSession": true
+        }
       },
       {
         // News — daily briefings, current events, tech/markets/geopolitics.
+        // Has its own Telegram bot and pushes briefings directly to the user.
         "id": "news",
         "name": "News",
-        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-news"
+        "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-news",
+        "heartbeat": {
+          "model": "openrouter/${HEARTBEAT_MODEL_ID}",
+          "lightContext": true,
+          "isolatedSession": true,
+          // Route heartbeat-originated Telegram messages through the news bot.
+          "accountId": "news-bot"
+        }
       }
     ]
   },
@@ -98,15 +109,16 @@
   // ── Channels ───────────────────────────────────────────────────────────────
   "channels": {
     // ── Telegram ─────────────────────────────────────────────────────────────
-    // Single bot — all DMs go to the Chief of Staff, which routes to specialists.
-    // Only TELEGRAM_ALLOWED_USER_ID can DM the bot.
-    // Note: OpenClaw supports only one botToken per telegram channel.
-    // Access the News agent directly via the WebChat UI.
-    // Single bot — all DMs go to the Chief of Staff, which routes to specialists.
-    // Only TELEGRAM_ALLOWED_USER_ID can DM the bot.
+    // One bot per agent — each agent has its own Telegram entry point.
+    // Only TELEGRAM_ALLOWED_USER_ID can DM either bot.
+    // Create both bots via @BotFather and set TELEGRAM_BOT_TOKEN_CHIEF and
+    // TELEGRAM_BOT_TOKEN_NEWS in .env.
     "telegram": {
       "enabled": true,
-      "botToken": "${TELEGRAM_BOT_TOKEN}",
+      "accounts": {
+        "chief-bot": { "botToken": "${TELEGRAM_BOT_TOKEN_CHIEF}" },
+        "news-bot":  { "botToken": "${TELEGRAM_BOT_TOKEN_NEWS}" }
+      },
       "dmPolicy": "allowlist",
       "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"],
       "streaming": "partial"
@@ -118,12 +130,10 @@
   },
 
   // ── Agent Bindings ─────────────────────────────────────────────────────────
-  // All Telegram DMs → Chief of Staff (which routes to specialists).
+  // Each bot routes directly to its own agent — no cross-agent routing.
   "bindings": [
-    {
-      "agentId": "chief",
-      "match": { "channel": "telegram" }
-    }
+    { "agentId": "chief", "match": { "channel": "telegram", "accountId": "chief-bot" } },
+    { "agentId": "news",  "match": { "channel": "telegram", "accountId": "news-bot"  } }
   ],
 
   // ── Gateway ────────────────────────────────────────────────────────────────
