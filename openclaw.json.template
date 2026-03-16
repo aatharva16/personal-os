@@ -53,14 +53,13 @@
         "primary": "openrouter/auto",
         "fallbacks": []
       },
-      // Shared heartbeat defaults — model, lightContext, isolatedSession are
-      // inherited by every agent heartbeat block. Per-agent blocks only need
-      // to specify what differs (every, target, accountId).
+      // Shared heartbeat defaults — model and lightContext are inherited by
+      // every agent heartbeat block. Per-agent blocks only need to specify
+      // what differs (every, target, accountId).
       "heartbeat": {
         // Pinned to the free model — zero cost for all heartbeats.
         "model": "openrouter/${HEARTBEAT_MODEL_ID}",
-        "lightContext": true,
-        "isolatedSession": true
+        "lightContext": true
       },
       "compaction": {
         "mode": "default",
@@ -88,7 +87,7 @@
         "id": "chief",
         "name": "Chief of Staff",
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-chief",
-        // Inherits model/lightContext/isolatedSession from agents.defaults.heartbeat.
+        // Inherits model/lightContext from agents.defaults.heartbeat.
         "heartbeat": { "every": "30m" }
       },
       {
@@ -97,7 +96,7 @@
         "id": "news",
         "name": "News",
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-news",
-        // Inherits model/lightContext/isolatedSession from agents.defaults.heartbeat.
+        // Inherits model/lightContext from agents.defaults.heartbeat.
         "heartbeat": {
           "every": "4h",
           // Route heartbeat delivery through the news bot.
