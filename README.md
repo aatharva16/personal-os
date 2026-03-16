@@ -153,7 +153,7 @@ When prompted for a token, copy the gateway token from the OpenClaw startup logs
 | **One bot per agent** | Each agent is independently reachable via its own Telegram bot |
 | **Cost-first routing** | OpenRouter auto router picks cheapest viable model per prompt server-side |
 | **Free heartbeats** | Hardcoded free model for all heartbeats; bypasses auto router entirely |
-| **Reliable heartbeats** | Native OpenClaw heartbeat disabled (known multi-agent bug); uses systemd timer + HEARTBEAT.md instead |
+| **Reliable heartbeats** | Per-agent `every` intervals (bug fixed in OpenClaw 2026.2.25); systemd timer provides a redundant external trigger |
 | **GitOps** | No manual edits on VM — edit locally → push → `./deploy.sh` |
 | **Memory safety** | `deploy.sh` never overwrites live `MEMORY.md` or `memory/` on re-deploy |
 | **Context hygiene** | OpenClaw auto-compacts at 8k tokens into daily logs + `MEMORY.md` |
