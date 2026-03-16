@@ -53,8 +53,15 @@
         "primary": "openrouter/auto",
         "fallbacks": []
       },
-      // Heartbeat model is set per-agent (see agents.list) so each agent
-      // controls its own heartbeat behaviour independently.
+      // Shared heartbeat defaults — model, lightContext, isolatedSession are
+      // inherited by every agent heartbeat block. Per-agent blocks only need
+      // to specify what differs (every, target, accountId).
+      "heartbeat": {
+        // Pinned to the free model — zero cost for all heartbeats.
+        "model": "openrouter/${HEARTBEAT_MODEL_ID}",
+        "lightContext": true,
+        "isolatedSession": true
+      },
       "compaction": {
         "mode": "default",
         "memoryFlush": {
@@ -81,13 +88,8 @@
         "id": "chief",
         "name": "Chief of Staff",
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-chief",
-        "heartbeat": {
-          // Pinned to the free model — zero cost for periodic checks.
-          // Per-agent every intervals work correctly since OpenClaw 2026.2.25.
-          "model": "openrouter/${HEARTBEAT_MODEL_ID}",
-          "lightContext": true,
-          "isolatedSession": true
-        }
+        // Inherits model/lightContext/isolatedSession from agents.defaults.heartbeat.
+        "heartbeat": { "every": "30m" }
       },
       {
         // News — daily briefings, current events, tech/markets/geopolitics.
@@ -95,11 +97,9 @@
         "id": "news",
         "name": "News",
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-news",
+        // Inherits model/lightContext/isolatedSession from agents.defaults.heartbeat.
         "heartbeat": {
-          "model": "openrouter/${HEARTBEAT_MODEL_ID}",
           "every": "4h",
-          "lightContext": true,
-          "isolatedSession": true,
           // Route heartbeat delivery through the news bot.
           "target": "telegram",
           "accountId": "news-bot"

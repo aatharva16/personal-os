@@ -143,7 +143,7 @@ TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")
 log ""
 log "Deployment complete."
 log ""
-log "  Telegram bot   → message it (Chief of Staff handles all routing)"
+log "  Telegram bots  → @chief_bot (Chief of Staff) / @news_bot (News)"
 if [[ -n "${TAILSCALE_IP}" ]]; then
   log "  Web Control UI → http://${TAILSCALE_IP}:18789"
   log "                   (paste gateway token from startup logs when prompted)"

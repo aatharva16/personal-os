@@ -163,10 +163,10 @@ echo "  Personal AI OS — Local Test Running"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "  Telegram:"
-echo "    → Message your bot (Chief of Staff handles all routing)"
+echo "    → @chief_bot (Chief of Staff) / @news_bot (News)"
 echo ""
 echo "  Web Control UI:"
-echo "    → http://localhost:18791"
+echo "    → http://localhost:18789"
 if [[ -n "${GATEWAY_TOKEN}" ]]; then
   echo "    → Gateway token: ${GATEWAY_TOKEN}"
 else
