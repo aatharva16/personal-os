@@ -137,26 +137,6 @@ restart_service() {
 log "Restarting services…"
 restart_service "personal-os"
 
-# Ensure the heartbeat timer is enabled and running.
-log "Enabling heartbeat timer…"
-sudo systemctl enable personal-os-heartbeat.timer 2>/dev/null || true
-if systemctl is-active --quiet "personal-os-heartbeat.timer"; then
-  sudo systemctl restart "personal-os-heartbeat.timer"
-else
-  sudo systemctl start "personal-os-heartbeat.timer"
-fi
-if systemctl is-active --quiet "personal-os-heartbeat.timer"; then
-  log "✓ personal-os-heartbeat.timer is running."
-  NEXT_USEC=$(systemctl show personal-os-heartbeat.timer --property=NextElapseUSecRealtime --value 2>/dev/null || true)
-  if [[ -n "${NEXT_USEC}" && "${NEXT_USEC}" != "0" ]]; then
-    log "  Next heartbeat: $(date -d @$((NEXT_USEC/1000000)) 2>/dev/null || echo 'see: systemctl status personal-os-heartbeat.timer')"
-  else
-    log "  Next heartbeat: see: systemctl status personal-os-heartbeat.timer"
-  fi
-else
-  error "personal-os-heartbeat.timer failed to start. Check: journalctl -u personal-os-heartbeat -n 50"
-fi
-
 # ── Print access info ─────────────────────────────────────────────────────────
 TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")
 

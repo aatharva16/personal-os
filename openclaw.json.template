@@ -84,8 +84,6 @@
         "heartbeat": {
           // Pinned to the free model — zero cost for periodic checks.
           // Per-agent every intervals work correctly since OpenClaw 2026.2.25.
-          // The systemd timer (personal-os-heartbeat.timer) provides a redundant
-          // external trigger via `openclaw heartbeat --all`.
           "model": "openrouter/${HEARTBEAT_MODEL_ID}",
           "every": "55m",
           "lightContext": true,

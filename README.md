@@ -73,10 +73,8 @@ sudo apt install -y gettext-base nodejs    # Node v22+ required
 # Install OpenClaw
 npm install -g openclaw@latest
 
-# Install systemd services
+# Install systemd service
 sudo cp systemd/personal-os.service /etc/systemd/system/
-sudo cp systemd/personal-os-heartbeat.service /etc/systemd/system/
-sudo cp systemd/personal-os-heartbeat.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 
 # Tailscale (one-time, for Web Control UI access)
@@ -102,8 +100,7 @@ sudo tailscale up
 ### Logs
 
 ```bash
-journalctl -u personal-os -f        # live gateway logs
-journalctl -u personal-os-heartbeat # heartbeat run history
+journalctl -u personal-os -f   # live gateway logs (includes heartbeat runs)
 ```
 
 ## Web Control UI
@@ -153,7 +150,7 @@ When prompted for a token, copy the gateway token from the OpenClaw startup logs
 | **One bot per agent** | Each agent is independently reachable via its own Telegram bot |
 | **Cost-first routing** | OpenRouter auto router picks cheapest viable model per prompt server-side |
 | **Free heartbeats** | Hardcoded free model for all heartbeats; bypasses auto router entirely |
-| **Reliable heartbeats** | Per-agent `every` intervals (bug fixed in OpenClaw 2026.2.25); systemd timer provides a redundant external trigger |
+| **Reliable heartbeats** | Per-agent `every` intervals via native OpenClaw scheduler (bug fixed in OpenClaw 2026.2.25) |
 | **GitOps** | No manual edits on VM — edit locally → push → `./deploy.sh` |
 | **Memory safety** | `deploy.sh` never overwrites live `MEMORY.md` or `memory/` on re-deploy |
 | **Context hygiene** | OpenClaw auto-compacts at 8k tokens into daily logs + `MEMORY.md` |
