@@ -8,13 +8,11 @@ Uses OpenRouter's server-side auto routing to pick the most cost-effective model
 
 ```
 Telegram: @chief_bot  ───→  Chief of Staff
-                                │  sessions_spawn/send
-                                └──→  News agent
 
-Telegram: @news_bot   ───→  News agent (direct)
+Telegram: @news_bot   ───→  News agent (briefings pushed proactively)
 
-Browser (Tailscale)   ───→  http://<tailscale-ip>:18790  (Web Control UI)
-[local]               ───→  http://localhost:18790
+Browser (Tailscale)   ───→  http://<tailscale-ip>:18789  (Web Control UI)
+[local]               ───→  http://localhost:18789
 
                    OpenClaw Gateway
                           │
@@ -40,7 +38,7 @@ Browser (Tailscale)   ───→  http://<tailscale-ip>:18790  (Web Control UI
 | Node.js | v22+ |
 | OpenClaw | latest (`npm install -g openclaw@latest`) |
 | OpenRouter account | One API key — [openrouter.ai](https://openrouter.ai) |
-| Telegram bot | 1 bot from [@BotFather](https://t.me/BotFather) |
+| Telegram bots | 1 bot per agent from [@BotFather](https://t.me/BotFather) |
 
 ## Quickstart (Local Dev)
 
@@ -51,7 +49,8 @@ cp .env.example .env
 # Fill in:
 #   OPENROUTER_API_KEY
 #   HEARTBEAT_MODEL_ID
-#   TELEGRAM_BOT_TOKEN
+#   TELEGRAM_BOT_TOKEN_CHIEF
+#   TELEGRAM_BOT_TOKEN_NEWS
 #   TELEGRAM_ALLOWED_USER_ID
 
 ./local-test.sh
@@ -74,10 +73,8 @@ sudo apt install -y gettext-base nodejs    # Node v22+ required
 # Install OpenClaw
 npm install -g openclaw@latest
 
-# Install systemd services
+# Install systemd service
 sudo cp systemd/personal-os.service /etc/systemd/system/
-sudo cp systemd/personal-os-heartbeat.service /etc/systemd/system/
-sudo cp systemd/personal-os-heartbeat.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 
 # Tailscale (one-time, for Web Control UI access)
@@ -103,8 +100,7 @@ sudo tailscale up
 ### Logs
 
 ```bash
-journalctl -u personal-os -f        # live gateway logs
-journalctl -u personal-os-heartbeat # heartbeat run history
+journalctl -u personal-os -f   # live gateway logs (includes heartbeat runs)
 ```
 
 ## Web Control UI
@@ -124,8 +120,9 @@ When prompted for a token, copy the gateway token from the OpenClaw startup logs
 |---|---|
 | `OPENROUTER_API_KEY` | OpenRouter API key |
 | `HEARTBEAT_MODEL_ID` | Free OpenRouter model ID for heartbeats (no prefix) |
-| `TELEGRAM_BOT_TOKEN` | Bot token from @BotFather — all messages go to Chief of Staff |
-| `TELEGRAM_ALLOWED_USER_ID` | Your numeric Telegram user ID (bot ignores everyone else) |
+| `TELEGRAM_BOT_TOKEN_CHIEF` | Chief of Staff bot token from @BotFather |
+| `TELEGRAM_BOT_TOKEN_NEWS` | News agent bot token from @BotFather |
+| `TELEGRAM_ALLOWED_USER_ID` | Your numeric Telegram user ID (bots ignore everyone else) |
 | `GATEWAY_BIND` | Named bind mode: `loopback` (local dev) or `lan` (Hetzner + Tailscale) |
 | `TAILSCALE_IP` | Output of `tailscale ip -4` on the VM — added to WebChat allowedOrigins |
 | `OPENCLAW_WORKSPACE_ROOT` | Where agent workspaces live on the VM |
@@ -138,22 +135,22 @@ When prompted for a token, copy the gateway token from the OpenClaw startup logs
 2. Create `agents/<name>/MEMORY.md` — initial empty state
 3. Create `agents/<name>/AGENTS.md` — session startup instructions
 4. Create `agents/<name>/HEARTBEAT.md` — proactive tasks for the 55-min timer
-5. Add the agent to `openclaw.json.template` under `agents.list`
-6. Add a new bot token env var and entry to `channels.telegram.bots` in the template
-7. Add a binding in `bindings` mapping the new bot to the new agent
-8. Add the new agent ID to `AGENTS=(...)` in both `deploy.sh` and `local-test.sh`
-9. Update the agent registry in `agents/chief/AGENTS.md`
+5. Add the agent to `openclaw.json.template` under `agents.list` with its own `heartbeat` block
+6. Add a new `<name>-bot` entry to `channels.telegram.accounts` in the template and set `TELEGRAM_BOT_TOKEN_<NAME>` in `.env`
+7. Add a binding in `bindings` mapping `accountId: "<name>-bot"` to the new agent
+8. Add the new bot token var to `REQUIRED_VARS` in both `deploy.sh` and `local-test.sh`
+9. Add the new agent ID to `AGENTS=(...)` in both `deploy.sh` and `local-test.sh`
 10. Run `./deploy.sh`
 
 ## Design Principles
 
 | Pillar | Implementation |
 |---|---|
-| **Chief of Staff as entry point** | Single coordinator bot handles all requests; delegates to specialists |
-| **One bot per agent** | Direct access to any specialist without routing through Chief |
+| **Chief of Staff as coordinator** | General-purpose bot handles requests; each specialist has its own bot |
+| **One bot per agent** | Each agent is independently reachable via its own Telegram bot |
 | **Cost-first routing** | OpenRouter auto router picks cheapest viable model per prompt server-side |
 | **Free heartbeats** | Hardcoded free model for all heartbeats; bypasses auto router entirely |
-| **Reliable heartbeats** | Native OpenClaw heartbeat disabled (known multi-agent bug); uses systemd timer + HEARTBEAT.md instead |
+| **Reliable heartbeats** | Per-agent `every` intervals via native OpenClaw scheduler (bug fixed in OpenClaw 2026.2.25) |
 | **GitOps** | No manual edits on VM — edit locally → push → `./deploy.sh` |
 | **Memory safety** | `deploy.sh` never overwrites live `MEMORY.md` or `memory/` on re-deploy |
 | **Context hygiene** | OpenClaw auto-compacts at 8k tokens into daily logs + `MEMORY.md` |

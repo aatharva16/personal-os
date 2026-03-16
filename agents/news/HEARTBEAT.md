@@ -6,7 +6,7 @@ Run these checks on every heartbeat. Use web search for all content — never fa
 
 1. **Check if today's briefing exists**
    - Look for an entry in `memory/YYYY-MM-DD.md` (today's date) containing `[AUTO]`
-   - If it exists → skip to step 3 (briefing already done today)
+   - If it exists → skip to step 4 (briefing already done today)
 
 2. **Generate today's briefing**
    - Use web search to fetch:
@@ -29,7 +29,10 @@ Run these checks on every heartbeat. Use web search for all content — never fa
      - <headline 1> — <one-sentence summary>
      ```
 
-3. **Write status**
+3. **Send to Telegram**
+   - Send the full briefing text to the user via Telegram
+
+4. **Write status**
    - Append one line:
      ```
      [HEARTBEAT] Briefing: <delivered/already present> at <HH:MM>
