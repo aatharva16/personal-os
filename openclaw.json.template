@@ -165,6 +165,19 @@
     }
   },
 
+  // ── Web Tools ──────────────────────────────────────────────────────────────
+  // Brave Search — used by the web_search tool in all agents.
+  // Get a key at: brave.com/search/api → Data for Search plan ($5/month free credit).
+  // Set BRAVE_API_KEY in .env — never hardcode the key here.
+  "tools": {
+    "web": {
+      "search": {
+        "enabled": true,
+        "apiKey": "${BRAVE_API_KEY}"
+      }
+    }
+  },
+
   // ── Logging ────────────────────────────────────────────────────────────────
   "logging": {
     "redactSensitive": "tools"
