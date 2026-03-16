@@ -85,7 +85,6 @@
           // Pinned to the free model — zero cost for periodic checks.
           // Per-agent every intervals work correctly since OpenClaw 2026.2.25.
           "model": "openrouter/${HEARTBEAT_MODEL_ID}",
-          "every": "55m",
           "lightContext": true,
           "isolatedSession": true
         }
@@ -98,7 +97,7 @@
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-news",
         "heartbeat": {
           "model": "openrouter/${HEARTBEAT_MODEL_ID}",
-          "every": "55m",
+          "every": "4h",
           "lightContext": true,
           "isolatedSession": true,
           // Route heartbeat-originated Telegram messages through the news bot.
