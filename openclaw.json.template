@@ -126,10 +126,9 @@
         // allowlist: only TELEGRAM_ALLOWED_USER_ID can DM either bot.
         // Bug #25793 (allowlist silently dropping messages) was present 2026.2.23–2026.3.x;
         // fixed as of 2026.3.13.
-        "chief-bot": { "botToken": "${TELEGRAM_BOT_TOKEN_CHIEF}", "dmPolicy": "allowlist", "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"] },
-        "news-bot":  { "botToken": "${TELEGRAM_BOT_TOKEN_NEWS}",  "dmPolicy": "allowlist", "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"] }
-      },
-      "streaming": "partial"
+        "chief-bot": { "botToken": "${TELEGRAM_BOT_TOKEN_CHIEF}", "dmPolicy": "allowlist", "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"], "streaming": "partial" },
+        "news-bot":  { "botToken": "${TELEGRAM_BOT_TOKEN_NEWS}",  "dmPolicy": "allowlist", "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"], "streaming": "partial" }
+      }
     }
     // WebChat control panel is auto-configured by OpenClaw on the gateway port.
     // Do not add a "webchat" entry here — OpenClaw rejects it as an unknown channel id.
