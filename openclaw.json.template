@@ -87,6 +87,11 @@
         "id": "chief",
         "name": "Chief of Staff",
         "workspace": "${OPENCLAW_WORKSPACE_ROOT}/workspace-chief",
+        // Grants chief permission to spawn tasks to these agents via sessions_spawn.
+        // sessions_send (agentToAgent) is intentionally omitted — bug #5813 in
+        // openclaw 2026.3.13 causes sessions_spawn to silently stall when
+        // tools.agentToAgent.enabled is set. Re-enable once that is fixed.
+        "subagents": { "allowAgents": ["news"] },
         // Inherits model/lightContext from agents.defaults.heartbeat.
         "heartbeat": { "every": "30m" }
       },
