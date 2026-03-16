@@ -126,10 +126,9 @@
         // allowlist: only TELEGRAM_ALLOWED_USER_ID can DM either bot.
         // Bug #25793 (allowlist silently dropping messages) was present 2026.2.23–2026.3.x;
         // fixed as of 2026.3.13.
-        "chief-bot": { "botToken": "${TELEGRAM_BOT_TOKEN_CHIEF}", "dmPolicy": "allowlist", "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"] },
-        "news-bot":  { "botToken": "${TELEGRAM_BOT_TOKEN_NEWS}",  "dmPolicy": "allowlist", "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"] }
-      },
-      "streaming": "partial"
+        "chief-bot": { "botToken": "${TELEGRAM_BOT_TOKEN_CHIEF}", "dmPolicy": "allowlist", "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"], "streaming": "partial" },
+        "news-bot":  { "botToken": "${TELEGRAM_BOT_TOKEN_NEWS}",  "dmPolicy": "allowlist", "allowFrom": ["${TELEGRAM_ALLOWED_USER_ID}"], "streaming": "partial" }
+      }
     }
     // WebChat control panel is auto-configured by OpenClaw on the gateway port.
     // Do not add a "webchat" entry here — OpenClaw rejects it as an unknown channel id.
@@ -163,6 +162,19 @@
         "http://${TAILSCALE_IP}:18789",
         "https://${TAILSCALE_HOSTNAME}"
       ]
+    }
+  },
+
+  // ── Web Tools ──────────────────────────────────────────────────────────────
+  // Brave Search — used by the web_search tool in all agents.
+  // Get a key at: brave.com/search/api → Data for Search plan ($5/month free credit).
+  // Set BRAVE_API_KEY in .env — never hardcode the key here.
+  "tools": {
+    "web": {
+      "search": {
+        "enabled": true,
+        "apiKey": "${BRAVE_API_KEY}"
+      }
     }
   },
 
