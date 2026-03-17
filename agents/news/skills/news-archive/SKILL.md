@@ -18,6 +18,9 @@ Every curl call MUST include `-H "X-Auth-Token: $MINIFLUX_API_KEY"`.
 Omitting it will always return `{"error_message":"access unauthorized"}`.
 `$MINIFLUX_API_KEY` is provided by the runtime via `requires.env` — never hardcode a value.
 
+WRONG:   `-H "X-Auth-Token: '$MINIFLUX_API_KEY'"`  ← single quotes inside double quotes send the literal string `'key'`
+CORRECT: `-H "X-Auth-Token: $MINIFLUX_API_KEY"`    ← no single quotes; shell expands the variable correctly
+
 ## Keyword search
 
 Use the `exec` tool with this exact command (replace `<query>` and `<ISO8601>`):
