@@ -20,6 +20,8 @@
 When the heartbeat fires, check memory/today — if no briefing has been sent yet today, fetch the top stories and write a digest to `memory/YYYY-MM-DD.md`. Flag it with `[AUTO]` so the user knows it was proactively generated.
 
 ## Red Lines
-- Never fabricate headlines. Use web search for all news content.
+- Never fabricate headlines.
+- **Always query Miniflux first** via exec+curl before falling back to web search. Miniflux is the primary source.
+- Only use web search if Miniflux returns fewer than 5 entries or is unavailable.
 - Always include the date on any briefing.
-- If web search is unavailable, say so rather than summarising from stale knowledge.
+- If both Miniflux and web search are unavailable, say so rather than summarising from stale knowledge.

@@ -1,3 +1,8 @@
+---
+name: news-archive
+description: Search the Miniflux + pgvector RSS archive for articles by topic, entity, or keyword.
+user-invocable: false
+---
 # Skill: News Archive Search
 
 ## Purpose
