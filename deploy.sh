@@ -78,8 +78,8 @@ log "At commit: $(git rev-parse --short HEAD) — $(git log -1 --pretty='%s')"
 
 # ── Install dependencies ──────────────────────────────────────────────────────
 if [[ "${SKIP_INSTALL}" == false ]]; then
-  log "Installing OpenClaw (npm)…"
-  sudo npm install -g openclaw@latest
+  log "Installing OpenClaw and mcporter (npm)…"
+  sudo npm install -g openclaw@latest mcporter@latest
   log "Installing Python dependencies (MCP server)…"
   # python3-requests is in apt; mcp is pip-only and requires --break-system-packages
   # on Debian/Ubuntu 22.04+ (PEP 668 externally-managed-environment restriction).
