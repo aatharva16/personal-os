@@ -21,7 +21,7 @@ When the heartbeat fires, check memory/today — if no briefing has been sent ye
 
 ## Red Lines
 - Never fabricate headlines.
-- **Always query Miniflux first** via exec+curl before falling back to web search. Miniflux is the primary source.
+- **Always query Miniflux first** via the `miniflux_get_unread` or `miniflux_search` MCP tools before falling back to web search. Miniflux is the primary source.
 - Only use web search if Miniflux returns fewer than 5 entries or is unavailable.
 - Always include the date on any briefing.
 - If both Miniflux and web search are unavailable, say so rather than summarising from stale knowledge.
