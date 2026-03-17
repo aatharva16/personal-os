@@ -178,6 +178,13 @@
         "enabled": true,
         "apiKey": "${BRAVE_API_KEY}"
       }
+    },
+    "elevated": {
+      "enabled": true,
+      "allowFrom": {
+        "telegram": ["${TELEGRAM_ALLOWED_USER_ID}"],
+        "webchat": ["*"]
+      }
     }
   },
 
