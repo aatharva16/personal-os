@@ -12,7 +12,16 @@ Setup (one-time):
 
 import os, sys, requests, psycopg2
 from datetime import datetime, timezone
+from pathlib import Path
 from dotenv import load_dotenv
+
+MEMORY_DIR = Path(__file__).parent.parent / 'agents' / 'news' / 'memory'
+
+
+def log_error(msg):
+    MEMORY_DIR.mkdir(parents=True, exist_ok=True)
+    with open(MEMORY_DIR / 'pipeline-errors.md', 'a') as f:
+        f.write(f"[{datetime.now(timezone.utc).isoformat()}] {msg}\n")
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
@@ -62,10 +71,19 @@ def store(conn, entries, embeddings):
 
 def main():
     if not MINIFLUX_API_KEY or not DATABASE_URL:
-        print("ERROR: MINIFLUX_API_KEY or MINIFLUX_DATABASE_URL not set", file=sys.stderr)
+        msg = "ERROR: MINIFLUX_API_KEY or MINIFLUX_DATABASE_URL not set"
+        print(msg, file=sys.stderr)
+        log_error(msg)
         sys.exit(1)
 
-    conn = psycopg2.connect(DATABASE_URL)
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+    except Exception as e:
+        msg = f"DB connection failed: {e}"
+        print(msg, file=sys.stderr)
+        log_error(msg)
+        sys.exit(1)
+
     try:
         last_id = get_last_id(conn)
         entries = get_new_entries(after_id=last_id)
@@ -76,6 +94,11 @@ def main():
         embeddings = embed([e.get('title','') for e in entries])
         store(conn, entries, embeddings)
         print(f"Stored. Highest ID: {entries[-1]['id']}")
+    except Exception as e:
+        msg = f"Pipeline error: {e}"
+        print(msg, file=sys.stderr)
+        log_error(msg)
+        sys.exit(1)
     finally:
         conn.close()
 
