@@ -2,6 +2,8 @@
 name: news-archive
 description: Search the Miniflux + pgvector RSS archive for articles by topic, entity, or keyword.
 user-invocable: false
+requires:
+  env: [MINIFLUX_API_KEY]
 ---
 # Skill: News Archive Search
 
@@ -13,8 +15,10 @@ The web_fetch tool cannot call localhost:8080 with custom headers. Use exec with
 
 ## Keyword search
 ```
-exec: curl -s -H "X-Auth-Token: <MINIFLUX_API_KEY from environment>" "http://localhost:8080/v1/entries?search=<query>&limit=20&published_after=<ISO8601>"
+exec: curl -s -H "X-Auth-Token: $MINIFLUX_API_KEY" "http://localhost:8080/v1/entries?search=<query>&limit=20&published_after=<ISO8601>"
 ```
+
+`$MINIFLUX_API_KEY` is injected by the runtime — always reference it exactly as shown so the shell expands it.
 Returns JSON with entries[].title, entries[].url, entries[].published_at, entries[].feed.title
 
 ## Output format
