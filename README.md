@@ -2,7 +2,7 @@
 
 A cost-optimized personal AI operating system built on [OpenClaw](https://docs.openclaw.ai). A **Chief of Staff** bot handles all coordination via Telegram and delegates specialist work to dedicated agents. Each agent also has its own Telegram bot for direct access.
 
-Uses OpenRouter's server-side auto routing to pick the most cost-effective model per prompt automatically. Heartbeats are pinned to a free model (zero cost). Runs on a Hetzner VM; Web Control UI is accessible via Tailscale VPN.
+Uses OpenRouter's server-side auto routing to pick the most cost-effective model per prompt automatically. Heartbeats are pinned to a free model (zero cost). Web search uses Tavily (primary, AI-optimised) with Serper.dev as fallback. Runs on a Hetzner VM; Web Control UI is accessible via Tailscale VPN.
 
 ## Architecture
 
@@ -28,8 +28,11 @@ Browser (Tailscale)   ───→  http://<tailscale-ip>:18789  (Web Control UI
 |---|---|---|
 | **Chief of Staff** | `@chief_bot` | Primary coordinator — routes tasks to specialists, handles general requests directly |
 | **News** | `@news_bot` | Daily briefings (tech, Indian markets, geopolitics), story tracking |
+| **Quant** | coming soon | Indian equity event monitoring (Phase 3) |
+| **Scout** | coming soon | Opportunity scouting — hackathons, accelerators, competitions (Phase 4) |
+| **Ideation** | coming soon | Side project ideation with India-market focus (Phase 5) |
 
-*More specialists will be added as the suite grows. Each new agent requires only a new workspace directory + config entry — no code changes.*
+*Each new agent requires only a new workspace directory + config entry — no code changes.*
 
 ## Prerequisites
 
@@ -52,6 +55,8 @@ cp .env.example .env
 #   TELEGRAM_BOT_TOKEN_CHIEF
 #   TELEGRAM_BOT_TOKEN_NEWS
 #   TELEGRAM_ALLOWED_USER_ID
+#   TAVILY_API_KEY
+#   SERPER_API_KEY
 
 ./local-test.sh
 # Press Ctrl+C to stop.
@@ -123,6 +128,8 @@ When prompted for a token, copy the gateway token from the OpenClaw startup logs
 | `TELEGRAM_BOT_TOKEN_CHIEF` | Chief of Staff bot token from @BotFather |
 | `TELEGRAM_BOT_TOKEN_NEWS` | News agent bot token from @BotFather |
 | `TELEGRAM_ALLOWED_USER_ID` | Your numeric Telegram user ID (bots ignore everyone else) |
+| `TAVILY_API_KEY` | Tavily search API key — primary web search (1,000 free credits/month) |
+| `SERPER_API_KEY` | Serper.dev API key — fallback web search ($1/1,000 queries) |
 | `GATEWAY_BIND` | Named bind mode: `loopback` (local dev) or `lan` (Hetzner + Tailscale) |
 | `TAILSCALE_IP` | Output of `tailscale ip -4` on the VM — added to WebChat allowedOrigins |
 | `OPENCLAW_WORKSPACE_ROOT` | Where agent workspaces live on the VM |

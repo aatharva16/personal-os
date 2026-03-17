@@ -57,6 +57,8 @@ REQUIRED_VARS=(
   TAILSCALE_IP
   TAILSCALE_HOSTNAME
   OPENCLAW_WORKSPACE_ROOT
+  TAVILY_API_KEY
+  SERPER_API_KEY
 )
 for VAR in "${REQUIRED_VARS[@]}"; do
   [[ -n "${!VAR:-}" ]] || error "Required env var '${VAR}' is not set in .env"

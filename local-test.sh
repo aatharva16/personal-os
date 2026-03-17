@@ -56,6 +56,8 @@ REQUIRED_VARS=(
   TELEGRAM_BOT_TOKEN_CHIEF
   TELEGRAM_BOT_TOKEN_NEWS
   TELEGRAM_ALLOWED_USER_ID
+  TAVILY_API_KEY
+  SERPER_API_KEY
 )
 for VAR in "${REQUIRED_VARS[@]}"; do
   [[ -n "${!VAR:-}" ]] || error "Required env var '${VAR}' is not set in .env"

@@ -59,7 +59,8 @@
       "heartbeat": {
         // Pinned to the free model — zero cost for all heartbeats.
         "model": "openrouter/${HEARTBEAT_MODEL_ID}",
-        "lightContext": true
+        "lightContext": true,
+        "max_tokens": 512
       },
       "compaction": {
         "mode": "default",
@@ -92,6 +93,7 @@
         // openclaw 2026.3.13 causes sessions_spawn to silently stall when
         // tools.agentToAgent.enabled is set. Re-enable once that is fixed.
         "subagents": { "allowAgents": ["news"] },
+        // NOTE: Add "quant", "scout", "ideation" here in Phase 3, 4, 5 respectively
         // Inherits model/lightContext from agents.defaults.heartbeat.
         "heartbeat": { "every": "30m" }
       },
@@ -166,14 +168,18 @@
   },
 
   // ── Web Tools ──────────────────────────────────────────────────────────────
-  // Brave Search — used by the web_search tool in all agents.
-  // Get a key at: brave.com/search/api → Data for Search plan ($5/month free credit).
-  // Set BRAVE_API_KEY in .env — never hardcode the key here.
+  // Primary: Tavily (1,000 free credits/month, AI-optimised output)
+  // Fallback: Serper.dev (cheapest Google Search API at $1/1,000 queries)
   "tools": {
     "web": {
       "search": {
         "enabled": true,
-        "apiKey": "${BRAVE_API_KEY}"
+        "provider": "tavily",
+        "apiKey": "${TAVILY_API_KEY}",
+        "fallback": {
+          "provider": "serper",
+          "apiKey": "${SERPER_API_KEY}"
+        }
       }
     }
   },
