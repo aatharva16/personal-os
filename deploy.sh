@@ -57,9 +57,10 @@ REQUIRED_VARS=(
   TAILSCALE_IP
   TAILSCALE_HOSTNAME
   OPENCLAW_WORKSPACE_ROOT
-  TAVILY_API_KEY
-  SERPER_API_KEY
+  BRAVE_API_KEY
 )
+# TAVILY_API_KEY and SERPER_API_KEY are optional — used by agents directly via HTTP,
+# not by OpenClaw's native search integration. Deploy succeeds without them.
 for VAR in "${REQUIRED_VARS[@]}"; do
   [[ -n "${!VAR:-}" ]] || error "Required env var '${VAR}' is not set in .env"
 done

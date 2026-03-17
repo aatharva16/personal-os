@@ -167,13 +167,16 @@
   },
 
   // ── Web Tools ──────────────────────────────────────────────────────────────
-  // OpenClaw's built-in search only supports: brave, perplexity, grok, gemini, kimi.
-  // Tavily and Serper are used at the agent skill level via TAVILY_API_KEY / SERPER_API_KEY
-  // env vars injected into each workspace — not via the built-in provider mechanism.
+  // Brave Search — used by the web_search tool in all agents.
+  // Get a key at: api.search.brave.com → Data for AI plan ($5/month free credit, ~1,000 queries).
+  // Set BRAVE_API_KEY in .env — never hardcode the key here.
+  // Tavily (TAVILY_API_KEY) and Serper (SERPER_API_KEY) are supplementary — agents can call
+  // their APIs directly via HTTP in heartbeat/skill files for richer structured results.
   "tools": {
     "web": {
       "search": {
-        "enabled": false
+        "enabled": true,
+        "apiKey": "${BRAVE_API_KEY}"
       }
     }
   },
