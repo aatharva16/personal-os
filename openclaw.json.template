@@ -4,6 +4,13 @@
 // See .env.example for all required environment variables.
 
 {
+  // ── Environment Variables ───────────────────────────────────────────────────
+  // Passed to all exec subprocesses. Values resolved at deploy time via envsubst.
+  // See: https://docs.openclaw.ai/tools/exec
+  "env": {
+    "MINIFLUX_API_KEY": "${MINIFLUX_API_KEY}"
+  },
+
   // ── Model Providers ────────────────────────────────────────────────────────
   // All inference goes through OpenRouter.
   //

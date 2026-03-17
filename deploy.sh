@@ -140,15 +140,6 @@ restart_service() {
   fi
 }
 
-log "Injecting env vars into personal-os systemd service…"
-OVERRIDE_DIR="/etc/systemd/system/personal-os.service.d"
-sudo mkdir -p "${OVERRIDE_DIR}"
-sudo tee "${OVERRIDE_DIR}/agent-env.conf" > /dev/null << EOF
-[Service]
-Environment="MINIFLUX_API_KEY=${MINIFLUX_API_KEY}"
-EOF
-sudo systemctl daemon-reload
-
 log "Restarting services…"
 restart_service "personal-os"
 
