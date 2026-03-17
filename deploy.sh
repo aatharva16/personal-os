@@ -84,7 +84,7 @@ if [[ "${SKIP_INSTALL}" == false ]]; then
   # python3-requests is in apt; mcp is pip-only and requires --break-system-packages
   # on Debian/Ubuntu 22.04+ (PEP 668 externally-managed-environment restriction).
   sudo apt-get install -y -q python3-requests
-  sudo pip3 install --break-system-packages --quiet mcp
+  sudo pip3 install --break-system-packages --quiet mcp uvicorn
 else
   log "Skipping installs (--skip-install)."
 fi
@@ -142,6 +142,8 @@ mkdir -p "${HOME}/.openclaw"
 cat > "${HOME}/.openclaw/.env" <<EOF
 MINIFLUX_API_KEY=${MINIFLUX_API_KEY}
 MINIFLUX_URL=http://localhost:8080
+MCP_HOST=127.0.0.1
+MCP_PORT=8765
 EOF
 chmod 600 "${HOME}/.openclaw/.env"
 log "Wrote ~/.openclaw/.env"
@@ -154,22 +156,40 @@ log "Wrote ~/.openclaw/.env"
 log "Writing ~/.mcporter/mcporter.json…"
 mkdir -p "${HOME}/.mcporter"
 MCP_SCRIPT="${OPENCLAW_WORKSPACE_ROOT}/scripts/miniflux_mcp_server.py"
+MCP_PORT="${MCP_PORT:-8765}"
 cat > "${HOME}/.mcporter/mcporter.json" <<EOF
 {
   "mcpServers": {
     "miniflux": {
-      "command": "python3",
-      "args": ["${MCP_SCRIPT}"],
-      "env": {
-        "MINIFLUX_API_KEY": "${MINIFLUX_API_KEY}",
-        "MINIFLUX_URL": "http://localhost:8080"
-      }
+      "url": "http://127.0.0.1:${MCP_PORT}/sse"
     }
   }
 }
 EOF
 chmod 600 "${HOME}/.mcporter/mcporter.json"
-log "Wrote ~/.mcporter/mcporter.json (miniflux MCP server → ${MCP_SCRIPT})"
+log "Wrote ~/.mcporter/mcporter.json (miniflux MCP SSE → http://127.0.0.1:${MCP_PORT}/sse)"
+
+# ── Install miniflux-mcp systemd service ─────────────────────────────────────
+log "Installing miniflux-mcp systemd service…"
+sudo tee /etc/systemd/system/miniflux-mcp.service > /dev/null <<EOF
+[Unit]
+Description=Miniflux MCP Server (SSE)
+After=network.target
+
+[Service]
+Type=simple
+User=${USER}
+EnvironmentFile=${HOME}/.openclaw/.env
+ExecStart=/usr/bin/python3 ${MCP_SCRIPT}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+restart_service "miniflux-mcp"
+log "Miniflux MCP SSE server running on http://127.0.0.1:${MCP_PORT}/sse"
 
 # ── Restart services ──────────────────────────────────────────────────────────
 restart_service() {
