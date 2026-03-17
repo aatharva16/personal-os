@@ -23,12 +23,18 @@ CORRECT: `-H "X-Auth-Token: $MINIFLUX_API_KEY"`    ← no single quotes; shell e
 
 ## Keyword search
 
-Use the `exec` tool with this exact command (replace `<query>` and `<ISO8601>`):
+Use the `exec` tool with this exact command. Use `-G --data-urlencode` so curl percent-encodes
+spaces and special characters in the query automatically — do NOT embed the query directly in the
+URL path, as unencoded spaces cause `curl exit code 3` (URL malformed).
+
+Replace `<query>` with the search terms and `<ISO8601>` with the date (e.g. `2026-01-01T00:00:00Z`):
 
 ```shell
-curl -s \
+curl -s -G \
   -H "X-Auth-Token: $MINIFLUX_API_KEY" \
-  "http://localhost:8080/v1/entries?search=<query>&limit=20&published_after=<ISO8601>"
+  --data-urlencode "search=<query>" \
+  --data-urlencode "published_after=<ISO8601>" \
+  "http://localhost:8080/v1/entries?limit=20"
 ```
 
 Returns JSON with `entries[].title`, `entries[].url`, `entries[].published_at`, `entries[].feed.title`

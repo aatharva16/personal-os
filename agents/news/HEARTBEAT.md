@@ -31,8 +31,8 @@ Append: `[HEARTBEAT] Briefing: <delivered/already present> at <HH:MM IST>`
 ## Archive query (on-demand, triggered by user or Chief)
 
 When asked about past coverage:
-1. Use exec+curl to call Miniflux search (do NOT add single quotes around $MINIFLUX_API_KEY):
+1. Use exec+curl to call Miniflux search. Use `--data-urlencode` so spaces in the query are encoded automatically (do NOT add single quotes around $MINIFLUX_API_KEY):
 ```shell
-curl -s -H "X-Auth-Token: $MINIFLUX_API_KEY" "http://localhost:8080/v1/entries?search=<query>&limit=20"
+curl -s -G -H "X-Auth-Token: $MINIFLUX_API_KEY" --data-urlencode "search=<query>" "http://localhost:8080/v1/entries?limit=20"
 ```
 2. Synthesise narrative from results — do not list raw headlines
