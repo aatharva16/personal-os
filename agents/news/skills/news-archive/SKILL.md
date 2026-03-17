@@ -10,16 +10,25 @@ requires:
 ## Purpose
 Search the Miniflux + pgvector archive for articles by topic or entity.
 
-## IMPORTANT: All Miniflux calls use exec+curl
-The web_fetch tool cannot call localhost:8080 with custom headers. Use exec with curl for ALL Miniflux API calls.
+## IMPORTANT: exec+curl only — web_fetch will not work
+`web_fetch` cannot reach `localhost:8080` with custom headers. Every Miniflux call MUST go through the `exec` tool running `curl`.
+
+## MANDATORY: Authentication header
+Every curl call MUST include `-H "X-Auth-Token: $MINIFLUX_API_KEY"`.
+Omitting it will always return `{"error_message":"access unauthorized"}`.
+`$MINIFLUX_API_KEY` is provided by the runtime via `requires.env` — never hardcode a value.
 
 ## Keyword search
-```
-exec: curl -s -H "X-Auth-Token: $MINIFLUX_API_KEY" "http://localhost:8080/v1/entries?search=<query>&limit=20&published_after=<ISO8601>"
+
+Use the `exec` tool with this exact command (replace `<query>` and `<ISO8601>`):
+
+```shell
+curl -s \
+  -H "X-Auth-Token: $MINIFLUX_API_KEY" \
+  "http://localhost:8080/v1/entries?search=<query>&limit=20&published_after=<ISO8601>"
 ```
 
-`$MINIFLUX_API_KEY` is injected by the runtime — always reference it exactly as shown so the shell expands it.
-Returns JSON with entries[].title, entries[].url, entries[].published_at, entries[].feed.title
+Returns JSON with `entries[].title`, `entries[].url`, `entries[].published_at`, `entries[].feed.title`
 
 ## Output format
 - Group results by story/topic, not by feed source
