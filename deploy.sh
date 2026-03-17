@@ -81,7 +81,10 @@ if [[ "${SKIP_INSTALL}" == false ]]; then
   log "Installing OpenClaw (npm)…"
   sudo npm install -g openclaw@latest
   log "Installing Python dependencies (MCP server)…"
-  pip3 install -r "${REPO_DIR}/requirements.txt" --quiet
+  # python3-requests is in apt; mcp is pip-only and requires --break-system-packages
+  # on Debian/Ubuntu 22.04+ (PEP 668 externally-managed-environment restriction).
+  sudo apt-get install -y -q python3-requests
+  sudo pip3 install --break-system-packages --quiet mcp
 else
   log "Skipping installs (--skip-install)."
 fi
