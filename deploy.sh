@@ -58,6 +58,8 @@ REQUIRED_VARS=(
   TAILSCALE_HOSTNAME
   OPENCLAW_WORKSPACE_ROOT
   BRAVE_API_KEY
+  MINIFLUX_DB_PASS
+  MINIFLUX_ADMIN_PASS
 )
 # TAVILY_API_KEY and SERPER_API_KEY are optional — used by agents directly via HTTP,
 # not by OpenClaw's native search integration. Deploy succeeds without them.
@@ -139,6 +141,20 @@ restart_service() {
 
 log "Restarting services…"
 restart_service "personal-os"
+
+# ── Docker Compose (Miniflux + PostgreSQL) ───────────────────────────────────
+if command -v docker >/dev/null 2>&1 && [[ -f "${REPO_DIR}/docker-compose.yml" ]]; then
+  log "Starting Docker services..."
+  cd "${REPO_DIR}"
+  docker compose up -d
+  sleep 3
+  if docker compose ps | grep -qE "running|Up"; then
+    log "✓ Miniflux running at http://localhost:8080"
+    log "  First run: Settings → API Keys → create key → add to .env as MINIFLUX_API_KEY"
+  else
+    log "⚠ Docker Compose may not have started cleanly — check: docker compose logs"
+  fi
+fi
 
 # ── Print access info ─────────────────────────────────────────────────────────
 TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")

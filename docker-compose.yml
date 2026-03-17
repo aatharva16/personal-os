@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  # ── Miniflux RSS reader ─────────────────────────────────────────
+  miniflux:
+    image: miniflux/miniflux:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      DATABASE_URL: postgres://miniflux:${MINIFLUX_DB_PASS}@db/miniflux?sslmode=disable
+      RUN_MIGRATIONS: "1"
+      CREATE_ADMIN: "1"
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: ${MINIFLUX_ADMIN_PASS}
+      POLLING_FREQUENCY: "15"  # poll feeds every 15 min (default 60 is too slow)
+      BASE_URL: http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+
+  # ── PostgreSQL with pgvector ────────────────────────────────────
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: miniflux
+      POSTGRES_PASSWORD: ${MINIFLUX_DB_PASS}
+      POSTGRES_DB: miniflux
+    volumes:
+      - miniflux-db:/var/lib/postgresql/data
+      - ./scripts/init-pgvector.sql:/docker-entrypoint-initdb.d/01-pgvector.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "miniflux"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+volumes:
+  miniflux-db:
+
+networks:
+  internal:
+    driver: bridge
