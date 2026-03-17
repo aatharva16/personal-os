@@ -9,9 +9,10 @@ Look in memory/YYYY-MM-DD.md for a line containing "[AUTO]". If found: skip to S
 
 ### Step 2: Fetch today's entries from Miniflux
 IMPORTANT: Use exec+curl. The web_fetch tool cannot call localhost:8080.
+Use the exec tool with the shell command below — do NOT add single quotes around $MINIFLUX_API_KEY.
 
-```
-exec: curl -s -H "X-Auth-Token: <MINIFLUX_API_KEY>" "http://localhost:8080/v1/entries?status=unread&limit=50"
+```shell
+curl -s -H "X-Auth-Token: $MINIFLUX_API_KEY" "http://localhost:8080/v1/entries?status=unread&limit=50"
 ```
 
 If exec returns < 5 entries or errors: fall back to web_search for top stories.
@@ -30,8 +31,8 @@ Append: `[HEARTBEAT] Briefing: <delivered/already present> at <HH:MM IST>`
 ## Archive query (on-demand, triggered by user or Chief)
 
 When asked about past coverage:
-1. Use exec+curl to call Miniflux search:
-```
-exec: curl -s -H "X-Auth-Token: <key>" "http://localhost:8080/v1/entries?search=<query>&limit=20"
+1. Use exec+curl to call Miniflux search (do NOT add single quotes around $MINIFLUX_API_KEY):
+```shell
+curl -s -H "X-Auth-Token: $MINIFLUX_API_KEY" "http://localhost:8080/v1/entries?search=<query>&limit=20"
 ```
 2. Synthesise narrative from results — do not list raw headlines
