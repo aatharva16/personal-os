@@ -59,8 +59,7 @@
       "heartbeat": {
         // Pinned to the free model — zero cost for all heartbeats.
         "model": "openrouter/${HEARTBEAT_MODEL_ID}",
-        "lightContext": true,
-        "max_tokens": 512
+        "lightContext": true
       },
       "compaction": {
         "mode": "default",
@@ -168,18 +167,16 @@
   },
 
   // ── Web Tools ──────────────────────────────────────────────────────────────
-  // Primary: Tavily (1,000 free credits/month, AI-optimised output)
-  // Fallback: Serper.dev (cheapest Google Search API at $1/1,000 queries)
+  // Brave Search — used by the web_search tool in all agents.
+  // Get a key at: api.search.brave.com → Data for AI plan ($5/month free credit, ~1,000 queries).
+  // Set BRAVE_API_KEY in .env — never hardcode the key here.
+  // Tavily (TAVILY_API_KEY) and Serper (SERPER_API_KEY) are supplementary — agents can call
+  // their APIs directly via HTTP in heartbeat/skill files for richer structured results.
   "tools": {
     "web": {
       "search": {
         "enabled": true,
-        "provider": "tavily",
-        "apiKey": "${TAVILY_API_KEY}",
-        "fallback": {
-          "provider": "serper",
-          "apiKey": "${SERPER_API_KEY}"
-        }
+        "apiKey": "${BRAVE_API_KEY}"
       }
     }
   },
