@@ -4,13 +4,6 @@
 // See .env.example for all required environment variables.
 
 {
-  // ── Environment Variables ───────────────────────────────────────────────────
-  // Passed to all exec subprocesses. Values resolved at deploy time via envsubst.
-  // See: https://docs.openclaw.ai/tools/exec
-  "env": {
-    "MINIFLUX_API_KEY": "${MINIFLUX_API_KEY}"
-  },
-
   // ── Model Providers ────────────────────────────────────────────────────────
   // All inference goes through OpenRouter.
   //
@@ -196,20 +189,10 @@
   },
 
   // ── MCP Servers ────────────────────────────────────────────────────────────
-  // Top-level array of stdio MCP servers. OpenClaw spawns each as a subprocess
-  // when an agent session starts. MINIFLUX_API_KEY is available to the subprocess
-  // via the top-level "env" block above.
-  "mcpServers": [
-    {
-      "name": "Miniflux RSS",
-      "identifier": "miniflux",
-      "comment": "Exposes the local Miniflux RSS reader as MCP tools for the news agent.",
-      "arguments": {
-        "command": "python3",
-        "args": ["${OPENCLAW_WORKSPACE_ROOT}/scripts/miniflux_mcp_server.py"]
-      }
-    }
-  ],
+  // MCP client config lives in ~/.mcporter/mcporter.json (mcporter is OpenClaw's
+  // MCP client layer). deploy.sh writes that file automatically.
+  // MINIFLUX_API_KEY is injected via ~/.openclaw/.env (daemon-safe) — not here.
+  // See scripts/miniflux_mcp_server.py for tool definitions.
 
   // ── Logging ────────────────────────────────────────────────────────────────
   "logging": {

@@ -8,7 +8,10 @@
 Look in memory/YYYY-MM-DD.md for a line containing "[AUTO]". If found: skip to Step 5.
 
 ### Step 2: Fetch today's entries from Miniflux
-Use the `miniflux_get_unread` MCP tool with `limit=50`.
+Call the `miniflux_get_unread` MCP tool:
+```
+miniflux_get_unread(limit=50)
+```
 
 If the tool returns fewer than 5 entries or errors: fall back to web_search for top stories.
 
@@ -26,5 +29,9 @@ Append: `[HEARTBEAT] Briefing: <delivered/already present> at <HH:MM IST>`
 ## Archive query (on-demand, triggered by user or Chief)
 
 When asked about past coverage:
-1. Use the `miniflux_search` MCP tool with `query=<topic>` and optionally `published_after=<ISO8601>`.
+1. Call `miniflux_search` MCP tool:
+   ```
+   miniflux_search(query="<topic>", limit=20)
+   ```
+   Add `published_after="<ISO8601>"` to filter by date (e.g. `"2026-01-01T00:00:00Z"`).
 2. Synthesise narrative from results — do not list raw headlines

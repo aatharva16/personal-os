@@ -133,6 +133,44 @@ OPENCLAW_CONFIG="${OPENCLAW_WORKSPACE_ROOT}/openclaw.json"
 envsubst < "${REPO_DIR}/openclaw.json.template" > "${OPENCLAW_CONFIG}"
 log "Wrote ${OPENCLAW_CONFIG}"
 
+# ── Write ~/.openclaw/.env (daemon-safe env vars) ─────────────────────────────
+# OpenClaw runs as a systemd daemon and won't inherit interactive shell env vars.
+# Krill (OpenClaw support, 2026-02-17): put secrets in ~/.openclaw/.env and
+# restart with `openclaw gateway restart`.
+log "Writing ~/.openclaw/.env…"
+mkdir -p "${HOME}/.openclaw"
+cat > "${HOME}/.openclaw/.env" <<EOF
+MINIFLUX_API_KEY=${MINIFLUX_API_KEY}
+MINIFLUX_URL=http://localhost:8080
+EOF
+chmod 600 "${HOME}/.openclaw/.env"
+log "Wrote ~/.openclaw/.env"
+
+# ── Write ~/.mcporter/mcporter.json (MCP client config) ───────────────────────
+# mcporter is OpenClaw's MCP client layer. Config lives at ~/.mcporter/mcporter.json.
+# Schema uses the standard MCP mcpServers format (same as Claude Desktop).
+# If mcporter uses a different top-level key, run `mcporter config add miniflux …`
+# and inspect the output to confirm — then update this block accordingly.
+log "Writing ~/.mcporter/mcporter.json…"
+mkdir -p "${HOME}/.mcporter"
+MCP_SCRIPT="${OPENCLAW_WORKSPACE_ROOT}/scripts/miniflux_mcp_server.py"
+cat > "${HOME}/.mcporter/mcporter.json" <<EOF
+{
+  "mcpServers": {
+    "miniflux": {
+      "command": "python3",
+      "args": ["${MCP_SCRIPT}"],
+      "env": {
+        "MINIFLUX_API_KEY": "${MINIFLUX_API_KEY}",
+        "MINIFLUX_URL": "http://localhost:8080"
+      }
+    }
+  }
+}
+EOF
+chmod 600 "${HOME}/.mcporter/mcporter.json"
+log "Wrote ~/.mcporter/mcporter.json (miniflux MCP server → ${MCP_SCRIPT})"
+
 # ── Restart services ──────────────────────────────────────────────────────────
 restart_service() {
   local SVC="$1"
@@ -152,6 +190,10 @@ restart_service() {
 
 log "Restarting services…"
 restart_service "personal-os"
+# Reload mcporter config without a full service restart (picks up mcporter.json changes).
+if command -v openclaw >/dev/null 2>&1; then
+  openclaw gateway restart || log "⚠ 'openclaw gateway restart' failed — check gateway logs."
+fi
 
 # ── Docker Compose (Miniflux + PostgreSQL) ───────────────────────────────────
 if command -v docker >/dev/null 2>&1 && [[ -f "${REPO_DIR}/docker-compose.yml" ]]; then
