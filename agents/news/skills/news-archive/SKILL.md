@@ -1,6 +1,6 @@
 ---
 name: news-archive
-description: Search the Miniflux + pgvector RSS archive for articles by topic, entity, or keyword.
+description: Search the Miniflux RSS archive for articles by topic, entity, or keyword.
 user-invocable: false
 ---
 # Skill: News Archive Search
@@ -10,17 +10,21 @@ Search the Miniflux RSS archive for articles by topic or entity.
 
 ## Keyword search
 
-Use the `miniflux_search` MCP tool — no exec or curl needed, auth is handled internally.
+Use exec to call the Miniflux search API directly. `MINIFLUX_API_KEY` is injected
+via the OpenClaw env block — no need to source it manually.
 
-Parameters:
-- `query` — search terms (spaces and special characters are fine, no encoding needed)
-- `limit` — number of results (default 20)
-- `published_after` — optional ISO8601 date filter, e.g. `2026-01-01T00:00:00Z`
+```
+curl -s -H "X-Auth-Token: $MINIFLUX_API_KEY" \
+  "http://localhost:8080/v1/entries?search=<query>&limit=20"
+```
 
-Example call:
+To filter by date, append `&published_after=<ISO8601>`, e.g.:
 ```
-miniflux_search(query="product hunt launches", limit=20, published_after="2026-01-01T00:00:00Z")
+curl -s -H "X-Auth-Token: $MINIFLUX_API_KEY" \
+  "http://localhost:8080/v1/entries?search=product+hunt+launches&limit=20&published_after=2026-01-01T00:00:00Z"
 ```
+
+Note: URL-encode spaces as `+` or `%20` in the query string.
 
 Returns JSON with `entries[].title`, `entries[].url`, `entries[].published_at`, `entries[].feed.title`
 

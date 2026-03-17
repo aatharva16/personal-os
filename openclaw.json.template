@@ -196,20 +196,11 @@
   },
 
   // ── MCP Servers ────────────────────────────────────────────────────────────
-  // Top-level array of stdio MCP servers. OpenClaw spawns each as a subprocess
-  // when an agent session starts. MINIFLUX_API_KEY is available to the subprocess
-  // via the top-level "env" block above.
-  "mcpServers": [
-    {
-      "name": "Miniflux RSS",
-      "identifier": "miniflux",
-      "comment": "Exposes the local Miniflux RSS reader as MCP tools for the news agent.",
-      "arguments": {
-        "command": "python3",
-        "args": ["${OPENCLAW_WORKSPACE_ROOT}/scripts/miniflux_mcp_server.py"]
-      }
-    }
-  ],
+  // NOTE: OpenClaw does not yet support acting as an MCP client. Native MCP
+  // server config is tracked in openclaw/openclaw#29053 and #4834. Until that
+  // ships, agents access Miniflux via exec+curl using MINIFLUX_API_KEY from
+  // the top-level "env" block above. The miniflux_mcp_server.py script is kept
+  // in scripts/ for when this feature lands.
 
   // ── Logging ────────────────────────────────────────────────────────────────
   "logging": {
