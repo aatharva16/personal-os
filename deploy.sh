@@ -188,8 +188,6 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 sudo systemctl daemon-reload
-restart_service "miniflux-mcp"
-log "Miniflux MCP SSE server running on http://127.0.0.1:${MCP_PORT}/sse"
 
 # ── Restart services ──────────────────────────────────────────────────────────
 restart_service() {
@@ -210,6 +208,8 @@ restart_service() {
 
 log "Restarting services…"
 restart_service "personal-os"
+restart_service "miniflux-mcp"
+log "Miniflux MCP SSE server running on http://127.0.0.1:${MCP_PORT}/sse"
 # Reload mcporter config without a full service restart (picks up mcporter.json changes).
 if command -v openclaw >/dev/null 2>&1; then
   openclaw gateway restart || log "⚠ 'openclaw gateway restart' failed — check gateway logs."
