@@ -1,2 +1,4 @@
-# No Python dependencies required.
-# All inference is handled by OpenClaw (npm) via OpenRouter.
+# Python dependencies for the Miniflux MCP server (scripts/miniflux_mcp_server.py).
+# Install with: pip3 install -r requirements.txt
+mcp
+requests

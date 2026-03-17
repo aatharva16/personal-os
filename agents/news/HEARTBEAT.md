@@ -8,14 +8,9 @@
 Look in memory/YYYY-MM-DD.md for a line containing "[AUTO]". If found: skip to Step 5.
 
 ### Step 2: Fetch today's entries from Miniflux
-IMPORTANT: Use exec+curl. The web_fetch tool cannot call localhost:8080.
-Use the exec tool with the shell command below — do NOT add single quotes around $MINIFLUX_API_KEY.
+Use the `miniflux_get_unread` MCP tool with `limit=50`.
 
-```shell
-curl -s -H "X-Auth-Token: $MINIFLUX_API_KEY" "http://localhost:8080/v1/entries?status=unread&limit=50"
-```
-
-If exec returns < 5 entries or errors: fall back to web_search for top stories.
+If the tool returns fewer than 5 entries or errors: fall back to web_search for top stories.
 
 ### Step 3: Cluster and summarise
 Pass titles to LLM: "Group these into 5 clusters (Tech/Indian Markets/ India Startup/Regulatory/World). For each, write one concise sentence."
@@ -31,8 +26,5 @@ Append: `[HEARTBEAT] Briefing: <delivered/already present> at <HH:MM IST>`
 ## Archive query (on-demand, triggered by user or Chief)
 
 When asked about past coverage:
-1. Use exec+curl to call Miniflux search. Use `--data-urlencode` so spaces in the query are encoded automatically (do NOT add single quotes around $MINIFLUX_API_KEY):
-```shell
-curl -s -G -H "X-Auth-Token: $MINIFLUX_API_KEY" --data-urlencode "search=<query>" "http://localhost:8080/v1/entries?limit=20"
-```
+1. Use the `miniflux_search` MCP tool with `query=<topic>` and optionally `published_after=<ISO8601>`.
 2. Synthesise narrative from results — do not list raw headlines

@@ -80,6 +80,8 @@ log "At commit: $(git rev-parse --short HEAD) — $(git log -1 --pretty='%s')"
 if [[ "${SKIP_INSTALL}" == false ]]; then
   log "Installing OpenClaw (npm)…"
   sudo npm install -g openclaw@latest
+  log "Installing Python dependencies (MCP server)…"
+  pip3 install -r "${REPO_DIR}/requirements.txt" --quiet
 else
   log "Skipping installs (--skip-install)."
 fi
@@ -116,6 +118,11 @@ if [[ ! -f "${SHARED_USER_MD}" ]]; then
   cp "${REPO_DIR}/agents/USER.md" "${SHARED_USER_MD}"
   log "Seeded shared USER.md — fill it in to personalise all agents."
 fi
+
+# ── Sync scripts (MCP servers) to workspace ──────────────────────────────────
+log "Syncing scripts → ${OPENCLAW_WORKSPACE_ROOT}/scripts…"
+rsync -a "${REPO_DIR}/scripts/" "${OPENCLAW_WORKSPACE_ROOT}/scripts/"
+log "  scripts: synced → ${OPENCLAW_WORKSPACE_ROOT}/scripts"
 
 # ── Render openclaw.json from template ───────────────────────────────────────
 log "Rendering openclaw.json from template…"

@@ -115,6 +115,20 @@
           // Route heartbeat delivery through the news bot.
           "target": "telegram",
           "accountId": "news-bot"
+        },
+        // ── Miniflux MCP server ─────────────────────────────────────────────
+        // Wraps the local Miniflux RSS reader as MCP tools so the news agent
+        // can call miniflux_get_unread, miniflux_search, and miniflux_get_feeds
+        // without exec+curl (auth is handled inside the server process).
+        "mcpServers": {
+          "miniflux": {
+            "command": "python3",
+            "args": ["${OPENCLAW_WORKSPACE_ROOT}/scripts/miniflux_mcp_server.py"],
+            "env": {
+              "MINIFLUX_API_KEY": "${MINIFLUX_API_KEY}",
+              "MINIFLUX_URL": "http://localhost:8080"
+            }
+          }
         }
       }
     ]
