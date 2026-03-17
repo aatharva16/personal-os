@@ -181,6 +181,10 @@
     },
     "elevated": {
       "enabled": true,
+      // env vars injected into every exec subprocess (values resolved at deploy time via envsubst)
+      "env": {
+        "MINIFLUX_API_KEY": "${MINIFLUX_API_KEY}"
+      },
       "allowFrom": {
         "telegram": ["${TELEGRAM_ALLOWED_USER_ID}"],
         "webchat": ["*"]

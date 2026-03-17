@@ -60,6 +60,7 @@ REQUIRED_VARS=(
   BRAVE_API_KEY
   MINIFLUX_DB_PASS
   MINIFLUX_ADMIN_PASS
+  MINIFLUX_API_KEY
 )
 # TAVILY_API_KEY and SERPER_API_KEY are optional — used by agents directly via HTTP,
 # not by OpenClaw's native search integration. Deploy succeeds without them.
