@@ -2,7 +2,9 @@
 """Miniflux MCP server — exposes Miniflux RSS reader as MCP tools.
 
 Reads MINIFLUX_API_KEY and MINIFLUX_URL from process environment at startup.
-Runs as a stdio MCP server; launched by OpenClaw per the mcpServers config.
+Runs as an SSE MCP server on MCP_HOST:MCP_PORT (default 127.0.0.1:8765).
+The SSE endpoint is at http://<host>:<port>/sse.
+Point mcporter at it with: { "url": "http://127.0.0.1:8765/sse" }
 """
 
 import os
@@ -75,4 +77,6 @@ def miniflux_get_feeds() -> str:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="stdio")
+    host = os.environ.get("MCP_HOST", "127.0.0.1")
+    port = int(os.environ.get("MCP_PORT", "8765"))
+    mcp.run(transport="sse", host=host, port=port)
