@@ -10,21 +10,21 @@ Search the Miniflux RSS archive for articles by topic or entity.
 
 ## Keyword search
 
-Use exec to call the Miniflux search API directly. `MINIFLUX_API_KEY` is injected
-via the OpenClaw env block — no need to source it manually.
+Call the `miniflux_search` MCP tool:
 
 ```
-curl -s -H "X-Auth-Token: $MINIFLUX_API_KEY" \
-  "http://localhost:8080/v1/entries?search=<query>&limit=20"
+miniflux_search(query="<topic>", limit=20)
 ```
 
-To filter by date, append `&published_after=<ISO8601>`, e.g.:
+To filter by date, pass `published_after`:
 ```
-curl -s -H "X-Auth-Token: $MINIFLUX_API_KEY" \
-  "http://localhost:8080/v1/entries?search=product+hunt+launches&limit=20&published_after=2026-01-01T00:00:00Z"
+miniflux_search(query="product hunt launches", limit=20, published_after="2026-01-01T00:00:00Z")
 ```
 
-Note: URL-encode spaces as `+` or `%20` in the query string.
+To list all subscribed feeds:
+```
+miniflux_get_feeds()
+```
 
 Returns JSON with `entries[].title`, `entries[].url`, `entries[].published_at`, `entries[].feed.title`
 
