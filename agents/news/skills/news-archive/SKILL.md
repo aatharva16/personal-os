@@ -1,7 +1,9 @@
 ---
 name: news-archive
 description: Search the Miniflux + pgvector RSS archive for articles by topic, entity, or keyword.
-user-invocable: true
+user-invocable: false
+requires:
+  env: [MINIFLUX_API_KEY]
 ---
 # Skill: News Archive Search
 

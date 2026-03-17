@@ -19,10 +19,6 @@
 
 When the heartbeat fires, check memory/today — if no briefing has been sent yet today, fetch the top stories and write a digest to `memory/YYYY-MM-DD.md`. Flag it with `[AUTO]` so the user knows it was proactively generated.
 
-## Skills
-
-- **`news-archive`** — Search the Miniflux + pgvector RSS archive for articles by topic, entity, or keyword. Use this skill whenever the user asks about news topics or when building briefings. See `skills/news-archive/SKILL.md` for usage.
-
 ## Red Lines
 - Never fabricate headlines.
 - **Always query Miniflux first** via exec+curl before falling back to web search. Miniflux is the primary source.

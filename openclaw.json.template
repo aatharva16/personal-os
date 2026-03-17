@@ -141,10 +141,7 @@
   // Each bot routes directly to its own agent — no cross-agent routing.
   "bindings": [
     { "agentId": "chief", "match": { "channel": "telegram", "accountId": "chief-bot" } },
-    { "agentId": "news",  "match": { "channel": "telegram", "accountId": "news-bot"  } },
-    // Route webchat to the news agent so users can test news-archive and other
-    // news-specific skills via the control UI, not just via the news-bot Telegram bot.
-    { "agentId": "news",  "match": { "channel": "webchat" } }
+    { "agentId": "news",  "match": { "channel": "telegram", "accountId": "news-bot"  } }
   ],
 
   // ── Gateway ────────────────────────────────────────────────────────────────
