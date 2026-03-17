@@ -59,8 +59,7 @@
       "heartbeat": {
         // Pinned to the free model — zero cost for all heartbeats.
         "model": "openrouter/${HEARTBEAT_MODEL_ID}",
-        "lightContext": true,
-        "max_tokens": 512
+        "lightContext": true
       },
       "compaction": {
         "mode": "default",
@@ -168,18 +167,13 @@
   },
 
   // ── Web Tools ──────────────────────────────────────────────────────────────
-  // Primary: Tavily (1,000 free credits/month, AI-optimised output)
-  // Fallback: Serper.dev (cheapest Google Search API at $1/1,000 queries)
+  // OpenClaw's built-in search only supports: brave, perplexity, grok, gemini, kimi.
+  // Tavily and Serper are used at the agent skill level via TAVILY_API_KEY / SERPER_API_KEY
+  // env vars injected into each workspace — not via the built-in provider mechanism.
   "tools": {
     "web": {
       "search": {
-        "enabled": true,
-        "provider": "tavily",
-        "apiKey": "${TAVILY_API_KEY}",
-        "fallback": {
-          "provider": "serper",
-          "apiKey": "${SERPER_API_KEY}"
-        }
+        "enabled": false
       }
     }
   },
