@@ -116,20 +116,6 @@
           "target": "telegram",
           "accountId": "news-bot"
         },
-        // ── Miniflux MCP server ─────────────────────────────────────────────
-        // Wraps the local Miniflux RSS reader as MCP tools so the news agent
-        // can call miniflux_get_unread, miniflux_search, and miniflux_get_feeds
-        // without exec+curl (auth is handled inside the server process).
-        "mcpServers": {
-          "miniflux": {
-            "command": "python3",
-            "args": ["${OPENCLAW_WORKSPACE_ROOT}/scripts/miniflux_mcp_server.py"],
-            "env": {
-              "MINIFLUX_API_KEY": "${MINIFLUX_API_KEY}",
-              "MINIFLUX_URL": "http://localhost:8080"
-            }
-          }
-        }
       }
     ]
   },
@@ -205,6 +191,30 @@
       "allowFrom": {
         "telegram": ["${TELEGRAM_ALLOWED_USER_ID}"],
         "webchat": ["*"]
+      }
+    }
+  },
+
+  // ── MCP Servers ────────────────────────────────────────────────────────────
+  // Top-level mcp.servers block (confirmed in OpenClaw schema: types.openclaw.ts
+  // `mcp?: McpConfig`). Only stdio MCP servers are supported.
+  //
+  // OpenClaw spawns each server as a subprocess when an agent session starts.
+  // The `env` values are injected directly into the subprocess — no shell
+  // expansion involved — which is why this reliably passes MINIFLUX_API_KEY
+  // where exec+curl's $VAR expansion was failing.
+  //
+  // The server is global (all agents see these tools). Only the news agent
+  // actually calls them.
+  "mcp": {
+    "servers": {
+      "miniflux": {
+        "command": "python3",
+        "args": ["${OPENCLAW_WORKSPACE_ROOT}/scripts/miniflux_mcp_server.py"],
+        "env": {
+          "MINIFLUX_API_KEY": "${MINIFLUX_API_KEY}",
+          "MINIFLUX_URL": "http://localhost:8080"
+        }
       }
     }
   },
