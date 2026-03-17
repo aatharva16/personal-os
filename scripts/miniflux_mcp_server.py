@@ -77,7 +77,8 @@ def miniflux_get_feeds() -> str:
 
 
 if __name__ == "__main__":
-    import uvicorn
     host = os.environ.get("MCP_HOST", "127.0.0.1")
     port = int(os.environ.get("MCP_PORT", "8765"))
-    uvicorn.run(mcp.sse_app(), host=host, port=port)
+    mcp.settings.host = host
+    mcp.settings.port = port
+    mcp.run(transport="sse")
