@@ -65,9 +65,9 @@ Collect operational learnings. Promote qualifying entries.
 
 ### Step 1: Find all pending .learnings/ entries
 ```
-exec: find ~/.openclaw -name "ERRORS.md" -path "*/.learnings/*" 2>/dev/null
-exec: find ~/.openclaw -name "LEARNINGS.md" -path "*/.learnings/*" 2>/dev/null
-exec: find ~/.openclaw -name "FEATURE_REQUESTS.md" -path "*/.learnings/*" 2>/dev/null
+exec: find $OPENCLAW_WORKSPACE_ROOT -name "ERRORS.md" -path "*/.learnings/*" 2>/dev/null
+exec: find $OPENCLAW_WORKSPACE_ROOT -name "LEARNINGS.md" -path "*/.learnings/*" 2>/dev/null
+exec: find $OPENCLAW_WORKSPACE_ROOT -name "FEATURE_REQUESTS.md" -path "*/.learnings/*" 2>/dev/null
 ```
 Read each file returned. Identify entries with `**Status:** pending`.
 
