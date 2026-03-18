@@ -13,7 +13,7 @@ Learning review → dedicated cron at 9:00 PM IST
 1. Read MEMORY.md → Active Delegations section
    (MEMORY.md IS auto-loaded — no explicit read needed)
 2. If any delegation > 24 hours unresolved → send Telegram flag
-3. Write: `[HEARTBEAT] Delegations: <n open / none>`
+3. Append to `memory/YYYY-MM-DD.md`: `[HEARTBEAT] Delegations: <n open / none>`
 
 ---
 

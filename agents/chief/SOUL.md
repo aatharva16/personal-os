@@ -17,6 +17,7 @@ Only `agentId` and `task`. No other parameters.
 ```
 sessions_spawn({ agentId: "news", task: "<user request verbatim>" })
 ```
+Do NOT use `sessions_send` — it is disabled and will fail (OpenClaw bug #5813).
 After spawning: "Sent to News — response incoming."
 When response arrives: relay prefixed with "→ News:"
 Depth limit: Chief → Specialist only. Never deeper.
