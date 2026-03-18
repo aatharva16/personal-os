@@ -93,8 +93,21 @@
         // tools.agentToAgent.enabled is set. Re-enable once that is fixed.
         "subagents": { "allowAgents": ["news"] },
         // NOTE: Add "quant", "scout", "ideation" here in Phase 3, 4, 5 respectively
-        // Inherits model/lightContext from agents.defaults.heartbeat.
-        "heartbeat": { "every": "30m" }
+        // Inherits model from agents.defaults.heartbeat.
+        "heartbeat": {
+          "every": "30m",
+          "lightContext": false,
+          // lightContext: false — Chief needs MEMORY.md, SOUL.md, AGENTS.md for
+          // routing decisions. true would skip these and degrade quality.
+          // The heartbeat is lightweight (delegations only) so this is fine.
+          "activeHours": {
+            "start": "06:30",
+            "end": "22:00",
+            "timezone": "Asia/Kolkata"
+          }
+          // activeHours skips heartbeats outside window at gateway level.
+          // Cron jobs have exact times so they don't need activeHours.
+        }
       },
       {
         // News — daily briefings, current events, tech/markets/geopolitics.

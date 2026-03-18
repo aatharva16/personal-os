@@ -101,12 +101,20 @@ for AGENT in "${AGENTS[@]}"; do
   # Sync workspace files.
   # MEMORY.md and memory/ are excluded — they grow at runtime on the VM
   # and must not be overwritten by stubs from the repo on re-deploys.
-  rsync -a --exclude='MEMORY.md' --exclude='memory/' "${SRC}/" "${DEST}/"
+  rsync -a --exclude='MEMORY.md' --exclude='memory/' --exclude='.learnings/' "${SRC}/" "${DEST}/"
 
   # Seed MEMORY.md only if it doesn't exist yet (first deploy)
   if [[ ! -f "${DEST}/MEMORY.md" ]]; then
     cp "${SRC}/MEMORY.md" "${DEST}/MEMORY.md"
     log "  ${AGENT}: seeded MEMORY.md (first deploy)"
+  fi
+
+  # Seed .learnings/ only if it doesn't exist yet (first deploy)
+  # Excluded from rsync above to preserve runtime error/learning logs on re-deploy.
+  if [[ ! -d "${DEST}/.learnings" ]]; then
+    mkdir -p "${DEST}/.learnings"
+    cp "${SRC}/.learnings/"*.md "${DEST}/.learnings/" 2>/dev/null || true
+    log "  ${AGENT}: seeded .learnings/ (first deploy)"
   fi
 
   # Symlink shared USER.md into every workspace
