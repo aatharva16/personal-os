@@ -186,17 +186,39 @@
   // Tavily (TAVILY_API_KEY) and Serper (SERPER_API_KEY) are supplementary — agents can call
   // their APIs directly via HTTP in heartbeat/skill files for richer structured results.
   "tools": {
+    "profile": "full",
     "web": {
       "search": {
         "enabled": true,
         "apiKey": "${BRAVE_API_KEY}"
       }
     },
+    "exec": {
+      "host": "gateway",
+      "security": "full",
+      "ask": "off"
+    },
     "elevated": {
       "enabled": true,
       "allowFrom": {
         "telegram": ["${TELEGRAM_ALLOWED_USER_ID}"],
         "webchat": ["*"]
+      }
+    }
+  },
+
+  // ── ACP Plugin ─────────────────────────────────────────────────────────────
+  // Auto-approve all tool permission requests for ACP sessions.
+  // permissionMode: approve-all — no interactive prompts for tool use.
+  // nonInteractivePermissions: approve-all — critical for heartbeats and
+  // spawned sub-tasks that run without a user to approve them.
+  "plugins": {
+    "entries": {
+      "acpx": {
+        "config": {
+          "permissionMode": "approve-all",
+          "nonInteractivePermissions": "approve-all"
+        }
       }
     }
   },
