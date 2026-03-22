@@ -33,6 +33,18 @@ SRM Contractors · KP Green Engineering · Ganesh Green Bharat
 
 Focus sectors: renewable energy EPC, solar, smart meters, mid-market IT services, jewellery
 
+## Infrastructure
+
+Environment variables available via shell (`exec` tool). **Always use these** — never guess URLs or IPs.
+
+| Variable | What | Example |
+|----------|------|---------|
+| `$PAPERCLIP_URL` | Paperclip API/UI base URL | `http://<tailscale-ip>:3100` |
+| `$GATEWAY_WS_URL` | This gateway's WebSocket URL (for Paperclip join flows) | `ws://<tailscale-ip>:18789` |
+| `$GATEWAY_HTTP_URL` | This gateway's HTTP URL | `http://<tailscale-ip>:18789` |
+
+To test Paperclip connectivity: `curl -fsS $PAPERCLIP_URL/api/health`
+
 ## Preferences by Agent
 
 ### Chief of Staff
