@@ -1,0 +1,26 @@
+[Unit]
+Description=Paperclip — AI Company Orchestration Platform
+Documentation=https://github.com/paperclipai/paperclip
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=clawuser
+Group=clawuser
+WorkingDirectory=/home/clawuser/.paperclip
+
+ExecStart=/usr/bin/env npx paperclipai start
+Restart=on-failure
+RestartSec=10
+
+Environment=NODE_ENV=production
+Environment=PORT=3100
+Environment=NODE_COMPILE_CACHE=/var/tmp/paperclip-compile-cache
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=paperclip
+
+[Install]
+WantedBy=multi-user.target

@@ -114,13 +114,16 @@ envsubst < "${REPO_DIR}/openclaw.json.template" > "${TEST_WORKSPACE}/openclaw.js
 
 # ── Cleanup trap ─────────────────────────────────────────────────────────────
 OPENCLAW_PID=""
+PAPERCLIP_PID=""
 
 cleanup() {
   echo ""
   log "Shutting down…"
+  [[ -n "${PAPERCLIP_PID}" ]] && kill "${PAPERCLIP_PID}" 2>/dev/null || true
   [[ -n "${OPENCLAW_PID}" ]] && kill "${OPENCLAW_PID}" 2>/dev/null || true
+  wait "${PAPERCLIP_PID}" 2>/dev/null || true
   wait "${OPENCLAW_PID}" 2>/dev/null || true
-  log "Stopped. Logs preserved at: ${TEST_WORKSPACE}/openclaw.log"
+  log "Stopped. Logs preserved at: ${TEST_WORKSPACE}/"
 }
 trap cleanup INT TERM EXIT
 
@@ -158,6 +161,22 @@ for i in $(seq 1 5); do
   sleep 1
 done
 
+# ── Start Paperclip (optional) ────────────────────────────────────────────────
+if command -v npx >/dev/null 2>&1 && npx paperclipai --version >/dev/null 2>&1; then
+  log "Starting Paperclip…"
+  npx paperclipai start >> "${TEST_WORKSPACE}/paperclip.log" 2>&1 &
+  PAPERCLIP_PID=$!
+  sleep 3
+  if kill -0 "${PAPERCLIP_PID}" 2>/dev/null; then
+    log "Paperclip running (PID ${PAPERCLIP_PID}) → http://localhost:3100"
+  else
+    log "⚠ Paperclip failed to start. Check ${TEST_WORKSPACE}/paperclip.log"
+    PAPERCLIP_PID=""
+  fi
+else
+  log "Paperclip not installed — skipping. Run: npx paperclipai onboard --yes"
+fi
+
 # ── Instructions ──────────────────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -166,6 +185,13 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "  Telegram:"
 echo "    → @chief_bot (Chief of Staff) / @news_bot (News)"
+echo ""
+echo "  Paperclip:"
+if [[ -n "${PAPERCLIP_PID}" ]]; then
+  echo "    → http://localhost:3100"
+else
+  echo "    → (not running)"
+fi
 echo ""
 echo "  Web Control UI:"
 echo "    → http://localhost:18789"

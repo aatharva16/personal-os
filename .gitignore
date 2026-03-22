@@ -15,5 +15,8 @@ venv/
 *.pid
 agents/*/MEMORY.md.bak
 
+# Paperclip local state
+.paperclip/
+
 # OS
 .DS_Store
