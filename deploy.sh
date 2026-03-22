@@ -148,9 +148,38 @@ rsync -a "${REPO_DIR}/scripts/" "${OPENCLAW_WORKSPACE_ROOT}/scripts/"
 log "  scripts: synced → ${OPENCLAW_WORKSPACE_ROOT}/scripts"
 
 # ── Render openclaw.json from template ───────────────────────────────────────
+# Preserve gateway auth token across deploys — OpenClaw auto-generates it on
+# first start, and Paperclip stores it when an agent is hired. Overwriting it
+# causes "gateway token mismatch" errors.
 log "Rendering openclaw.json from template…"
 OPENCLAW_CONFIG="${OPENCLAW_WORKSPACE_ROOT}/openclaw.json"
+EXISTING_GW_TOKEN=""
+if [[ -f "${OPENCLAW_CONFIG}" ]]; then
+  EXISTING_GW_TOKEN=$(python3 -c "
+import json, re, sys
+# openclaw.json may have JS-style comments — strip them before parsing
+text = open('${OPENCLAW_CONFIG}').read()
+text = re.sub(r'//.*', '', text)
+try:
+    cfg = json.loads(text)
+    print(cfg.get('gateway',{}).get('auth',{}).get('token',''))
+except: pass
+" 2>/dev/null) || true
+fi
 envsubst < "${REPO_DIR}/openclaw.json.template" > "${OPENCLAW_CONFIG}"
+# Re-inject the preserved gateway token
+if [[ -n "${EXISTING_GW_TOKEN}" ]]; then
+  python3 -c "
+import json, re
+path = '${OPENCLAW_CONFIG}'
+text = open(path).read()
+text = re.sub(r'//.*', '', text)
+cfg = json.loads(text)
+cfg.setdefault('gateway', {}).setdefault('auth', {})['token'] = '${EXISTING_GW_TOKEN}'
+open(path, 'w').write(json.dumps(cfg, indent=2))
+" 2>/dev/null && log "Preserved gateway auth token from previous deploy." \
+  || log "⚠ Could not preserve gateway token — Paperclip may need agent re-hire."
+fi
 log "Wrote ${OPENCLAW_CONFIG}"
 
 # ── Write ~/.openclaw/.env (daemon-safe env vars) ─────────────────────────────
@@ -214,7 +243,9 @@ sudo systemctl daemon-reload
 
 # ── Install paperclip systemd service ─────────────────────────────────────────
 log "Installing paperclip systemd service…"
-sudo cp "${REPO_DIR}/systemd/paperclip.service" /etc/systemd/system/paperclip.service
+sed "s/__PAPERCLIP_PORT__/${PAPERCLIP_PORT:-3100}/g" \
+  "${REPO_DIR}/systemd/paperclip.service" \
+  | sudo tee /etc/systemd/system/paperclip.service >/dev/null
 sudo systemctl daemon-reload
 
 # ── Restart services ──────────────────────────────────────────────────────────
@@ -234,9 +265,25 @@ restart_service() {
   fi
 }
 
+# ── Free Paperclip port if occupied ────────────────────────────────────────────
+# Paperclip falls back to a random port if its configured port is busy, which
+# breaks tailscale serve and health checks. Kill whatever holds the port.
+PAPERCLIP_PORT="${PAPERCLIP_PORT:-3100}"
+BLOCKER_PID=$(lsof -ti :"${PAPERCLIP_PORT}" 2>/dev/null || true)
+if [[ -n "${BLOCKER_PID}" ]]; then
+  log "Port ${PAPERCLIP_PORT} occupied by PID ${BLOCKER_PID} — killing to free it for Paperclip…"
+  sudo kill "${BLOCKER_PID}" 2>/dev/null || true
+  sleep 2
+  # Force-kill if still alive
+  if lsof -ti :"${PAPERCLIP_PORT}" >/dev/null 2>&1; then
+    sudo kill -9 "${BLOCKER_PID}" 2>/dev/null || true
+    sleep 1
+  fi
+fi
+
 log "Restarting services…"
 restart_service "paperclip"
-log "Paperclip running on http://localhost:${PAPERCLIP_PORT:-3100}"
+log "Paperclip running on http://localhost:${PAPERCLIP_PORT}"
 
 # ── Provision Paperclip agent API keys ──────────────────────────────────────
 # `local-cli` is a standard Paperclip step: it creates an API key for an agent
