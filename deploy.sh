@@ -238,6 +238,35 @@ log "Restarting services…"
 restart_service "paperclip"
 log "Paperclip running on http://localhost:${PAPERCLIP_PORT:-3100}"
 
+# ── Claim Paperclip agent API key ──────────────────────────────────────────
+# After hiring an agent in Paperclip UI, `local-cli` creates the API key file
+# that OpenClaw agents need to authenticate task requests.
+# Requires PAPERCLIP_COMPANY_ID and PAPERCLIP_AGENT_REF in .env.
+if [[ -n "${PAPERCLIP_COMPANY_ID:-}" && -n "${PAPERCLIP_AGENT_REF:-}" ]]; then
+  API_KEY_FILE="${OPENCLAW_WORKSPACE_ROOT}/paperclip-claimed-api-key.json"
+  if [[ ! -f "${API_KEY_FILE}" ]]; then
+    log "Claiming Paperclip agent API key (first run after hire)…"
+    # Wait for Paperclip API to be healthy before claiming
+    for i in $(seq 1 10); do
+      curl -fsS "http://localhost:${PAPERCLIP_PORT:-3100}/api/health" >/dev/null 2>&1&& break
+      sleep 2
+    done
+    npx paperclipai agent local-cli "${PAPERCLIP_AGENT_REF}" \
+      -C "${PAPERCLIP_COMPANY_ID}" \
+      --no-install-skills \
+      --api-base "http://localhost:${PAPERCLIP_PORT:-3100}" \
+      --json > "${API_KEY_FILE}" \
+      && log "✓ Wrote ${API_KEY_FILE}" \
+      || log "⚠ Failed to claim Paperclip API key — run manually: npx paperclipai agent local-cli ${PAPERCLIP_AGENT_REF} -C ${PAPERCLIP_COMPANY_ID}"
+    chmod 600 "${API_KEY_FILE}" 2>/dev/null || true
+  else
+    log "Paperclip API key already claimed → ${API_KEY_FILE}"
+  fi
+else
+  log "PAPERCLIP_COMPANY_ID / PAPERCLIP_AGENT_REF not set — skipping API key claim."
+  log "  To fix: hire an agent in Paperclip UI, then add both vars to .env and re-deploy."
+fi
+
 # ── Expose Paperclip to Tailnet via tailscale serve ─────────────────────────
 # Paperclip binds to localhost only (no auth layer). tailscale serve proxies
 # it to the Tailnet so you can reach it from other devices on your network.
