@@ -80,6 +80,12 @@ log "At commit: $(git rev-parse --short HEAD) — $(git log -1 --pretty='%s')"
 if [[ "${SKIP_INSTALL}" == false ]]; then
   log "Installing OpenClaw and mcporter (npm)…"
   sudo npm install -g openclaw@latest mcporter@latest
+  # Install pnpm if not present (required by Paperclip)
+  if ! command -v pnpm >/dev/null 2>&1; then
+    log "Installing pnpm…"
+    sudo npm install -g pnpm@latest
+  fi
+
   log "Installing Python dependencies (MCP server)…"
   # python3-requests is in apt; mcp is pip-only and requires --break-system-packages
   # on Debian/Ubuntu 22.04+ (PEP 668 externally-managed-environment restriction).
@@ -87,6 +93,12 @@ if [[ "${SKIP_INSTALL}" == false ]]; then
   sudo pip3 install --break-system-packages --quiet mcp uvicorn
 else
   log "Skipping installs (--skip-install)."
+fi
+
+# ── One-time Paperclip onboard ────────────────────────────────────────────────
+if [[ ! -d "${HOME}/.paperclip" ]]; then
+  log "Running Paperclip onboard (first deploy)…"
+  npx paperclipai onboard --yes
 fi
 
 # ── Sync agent workspaces ─────────────────────────────────────────────────────
@@ -197,6 +209,11 @@ WantedBy=multi-user.target
 EOF
 sudo systemctl daemon-reload
 
+# ── Install paperclip systemd service ─────────────────────────────────────────
+log "Installing paperclip systemd service…"
+sudo cp "${REPO_DIR}/systemd/paperclip.service" /etc/systemd/system/paperclip.service
+sudo systemctl daemon-reload
+
 # ── Restart services ──────────────────────────────────────────────────────────
 restart_service() {
   local SVC="$1"
@@ -218,6 +235,8 @@ log "Restarting services…"
 restart_service "personal-os"
 restart_service "miniflux-mcp"
 log "Miniflux MCP SSE server running on http://127.0.0.1:${MCP_PORT}/sse"
+restart_service "paperclip"
+log "Paperclip running on http://localhost:3100"
 # Reload mcporter config without a full service restart (picks up mcporter.json changes).
 if command -v openclaw >/dev/null 2>&1; then
   openclaw gateway restart || log "⚠ 'openclaw gateway restart' failed — check gateway logs."
@@ -243,6 +262,7 @@ TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")
 log ""
 log "Deployment complete."
 log ""
+log "  Paperclip UI   → http://${TAILSCALE_IP:-localhost}:3100"
 log "  Telegram bots  → @chief_bot (Chief of Staff) / @news_bot (News)"
 if [[ -n "${TAILSCALE_IP}" ]]; then
   log "  Web Control UI → http://${TAILSCALE_IP}:18789"
