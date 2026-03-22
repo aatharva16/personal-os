@@ -214,7 +214,9 @@ sudo systemctl daemon-reload
 
 # ── Install paperclip systemd service ─────────────────────────────────────────
 log "Installing paperclip systemd service…"
-sudo cp "${REPO_DIR}/systemd/paperclip.service" /etc/systemd/system/paperclip.service
+sed "s/__PAPERCLIP_PORT__/${PAPERCLIP_PORT:-3100}/g" \
+  "${REPO_DIR}/systemd/paperclip.service" \
+  | sudo tee /etc/systemd/system/paperclip.service >/dev/null
 sudo systemctl daemon-reload
 
 # ── Restart services ──────────────────────────────────────────────────────────
@@ -234,9 +236,25 @@ restart_service() {
   fi
 }
 
+# ── Free Paperclip port if occupied ────────────────────────────────────────────
+# Paperclip falls back to a random port if its configured port is busy, which
+# breaks tailscale serve and health checks. Kill whatever holds the port.
+PP_PORT="${PAPERCLIP_PORT:-3100}"
+PP_PID=$(lsof -ti :"${PP_PORT}" 2>/dev/null || true)
+if [[ -n "${PP_PID}" ]]; then
+  log "Port ${PP_PORT} occupied by PID ${PP_PID} — killing to free it for Paperclip…"
+  sudo kill "${PP_PID}" 2>/dev/null || true
+  sleep 2
+  # Force-kill if still alive
+  if lsof -ti :"${PP_PORT}" >/dev/null 2>&1; then
+    sudo kill -9 "${PP_PID}" 2>/dev/null || true
+    sleep 1
+  fi
+fi
+
 log "Restarting services…"
 restart_service "paperclip"
-log "Paperclip running on http://localhost:${PAPERCLIP_PORT:-3100}"
+log "Paperclip running on http://localhost:${PP_PORT}"
 
 # ── Provision Paperclip agent API keys ──────────────────────────────────────
 # `local-cli` is a standard Paperclip step: it creates an API key for an agent
