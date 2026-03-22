@@ -167,7 +167,7 @@ done
 # ── Start Paperclip (optional) ────────────────────────────────────────────────
 if command -v npx >/dev/null 2>&1 && npx paperclipai --version >/dev/null 2>&1; then
   log "Starting Paperclip…"
-  npx paperclipai start >> "${TEST_WORKSPACE}/paperclip.log" 2>&1 &
+  npx paperclipai run >> "${TEST_WORKSPACE}/paperclip.log" 2>&1 &
   PAPERCLIP_PID=$!
   sleep 3
   if kill -0 "${PAPERCLIP_PID}" 2>/dev/null; then
