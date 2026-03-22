@@ -210,14 +210,14 @@
   // ── ACP Plugin ─────────────────────────────────────────────────────────────
   // Auto-approve all tool permission requests for ACP sessions.
   // permissionMode: approve-all — no interactive prompts for tool use.
-  // nonInteractivePermissions: approve-all — critical for heartbeats and
+  // nonInteractivePermissions: deny
   // spawned sub-tasks that run without a user to approve them.
   "plugins": {
     "entries": {
       "acpx": {
         "config": {
           "permissionMode": "approve-all",
-          "nonInteractivePermissions": "approve-all"
+          "nonInteractivePermissions": "deny"
         }
       }
     }
