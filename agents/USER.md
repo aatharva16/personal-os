@@ -39,9 +39,9 @@ Environment variables available via shell (`exec` tool). **Always use these** â€
 
 | Variable | What | Example |
 |----------|------|---------|
-| `$PAPERCLIP_URL` | Paperclip API/UI base URL | `http://<tailscale-ip>:3100` |
-| `$GATEWAY_WS_URL` | This gateway's WebSocket URL (for Paperclip join flows) | `ws://<tailscale-ip>:18789` |
-| `$GATEWAY_HTTP_URL` | This gateway's HTTP URL | `http://<tailscale-ip>:18789` |
+| `$PAPERCLIP_URL` | Paperclip API/UI base URL | `http://localhost:3100` |
+| `$GATEWAY_WS_URL` | This gateway's WebSocket URL (for Paperclip join flows) | `ws://localhost:18789` |
+| `$GATEWAY_HTTP_URL` | This gateway's HTTP URL | `http://localhost:18789` |
 
 To test Paperclip connectivity: `curl -fsS $PAPERCLIP_URL/api/health`
 

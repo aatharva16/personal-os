@@ -164,9 +164,9 @@ MINIFLUX_API_KEY=${MINIFLUX_API_KEY}
 MINIFLUX_URL=http://localhost:8080
 MCP_HOST=127.0.0.1
 MCP_PORT=8765
-PAPERCLIP_URL=http://${TAILSCALE_IP:-localhost}:${PAPERCLIP_PORT:-3100}
-GATEWAY_WS_URL=ws://${TAILSCALE_IP:-localhost}:18789
-GATEWAY_HTTP_URL=http://${TAILSCALE_IP:-localhost}:18789
+PAPERCLIP_URL=http://localhost:${PAPERCLIP_PORT:-3100}
+GATEWAY_WS_URL=ws://localhost:18789
+GATEWAY_HTTP_URL=http://localhost:18789
 EOF
 chmod 600 "${HOME}/.openclaw/.env"
 log "Wrote ~/.openclaw/.env"
@@ -236,7 +236,19 @@ restart_service() {
 
 log "Restarting services…"
 restart_service "paperclip"
-log "Paperclip running on http://${TAILSCALE_IP:-localhost}:${PAPERCLIP_PORT:-3100}"
+log "Paperclip running on http://localhost:${PAPERCLIP_PORT:-3100}"
+
+# ── Expose Paperclip to Tailnet via tailscale serve ─────────────────────────
+# Paperclip binds to localhost only (no auth layer). tailscale serve proxies
+# it to the Tailnet so you can reach it from other devices on your network.
+log "Configuring tailscale serve for Paperclip (port ${PAPERCLIP_PORT:-3100})…"
+if command -v tailscale >/dev/null 2>&1; then
+  sudo tailscale serve --bg --http "${PAPERCLIP_PORT:-3100}" "http://localhost:${PAPERCLIP_PORT:-3100}" \
+    && log "✓ Paperclip available on Tailnet → http://${TAILSCALE_IP:-<tailscale-ip>}:${PAPERCLIP_PORT:-3100}" \
+    || log "⚠ tailscale serve failed — Paperclip accessible on localhost only"
+else
+  log "⚠ tailscale not found — Paperclip accessible on localhost only"
+fi
 restart_service "personal-os"
 restart_service "miniflux-mcp"
 log "Miniflux MCP SSE server running on http://127.0.0.1:${MCP_PORT}/sse"
@@ -265,7 +277,7 @@ TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")
 log ""
 log "Deployment complete."
 log ""
-log "  Paperclip UI   → http://${TAILSCALE_IP:-localhost}:3100"
+log "  Paperclip UI   → http://localhost:3100 (Tailnet: http://${TAILSCALE_IP:-<tailscale-ip>}:3100)"
 log "  Telegram bots  → @chief_bot (Chief of Staff) / @news_bot (News)"
 if [[ -n "${TAILSCALE_IP}" ]]; then
   log "  Web Control UI → http://${TAILSCALE_IP}:18789"
