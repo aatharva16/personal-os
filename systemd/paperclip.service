@@ -3,6 +3,7 @@ Description=Paperclip — AI Company Orchestration Platform
 Documentation=https://github.com/paperclipai/paperclip
 After=network-online.target
 Wants=network-online.target
+Before=personal-os.service
 
 [Service]
 Type=simple
