@@ -18,7 +18,7 @@ _Chief's 9 PM cron promotes corrections and recurring items._
 **Logged:** 2026-03-22T18:55:00+05:30 | **Priority:** high | **Status:** promoted
 **Agent:** chief
 **Category:** best_practice
-**Summary:** Paperclip onboarding must run inline — never spawn threaded sessions
-**Detail:** Paperclip's onboarding instructions tell the agent to spawn a "paperclip-onboarding" session with thread=true, but OpenClaw does not support threaded subagent sessions. This causes an infinite retry loop. The correct approach is to handle all onboarding steps (reachability test, join request, key exchange) inline in the current session.
+**Summary:** Paperclip onboarding — never use thread=true (use inline or regular sessions_spawn)
+**Detail:** Paperclip's onboarding instructions tell the agent to spawn a session with thread=true, but OpenClaw does not support threaded sessions. This causes an infinite retry loop. The correct approach is to either handle onboarding inline or use a regular sessions_spawn (without thread=true).
 **Promote to:** SOUL.md (done)
 **Recurrence:** 0
