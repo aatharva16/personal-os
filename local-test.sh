@@ -70,6 +70,9 @@ export GATEWAY_BIND="loopback"
 # For local testing, allowedOrigins only needs localhost
 export TAILSCALE_IP="127.0.0.1"
 export TAILSCALE_HOSTNAME="localhost"
+export PAPERCLIP_URL="http://localhost:${PAPERCLIP_PORT:-3100}"
+export GATEWAY_WS_URL="ws://localhost:18789"
+export GATEWAY_HTTP_URL="http://localhost:18789"
 
 # ── Install dependencies ──────────────────────────────────────────────────────
 if [[ "${SKIP_INSTALL}" == false ]]; then

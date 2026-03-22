@@ -164,6 +164,9 @@ MINIFLUX_API_KEY=${MINIFLUX_API_KEY}
 MINIFLUX_URL=http://localhost:8080
 MCP_HOST=127.0.0.1
 MCP_PORT=8765
+PAPERCLIP_URL=http://${TAILSCALE_IP:-localhost}:${PAPERCLIP_PORT:-3100}
+GATEWAY_WS_URL=ws://${TAILSCALE_IP:-localhost}:18789
+GATEWAY_HTTP_URL=http://${TAILSCALE_IP:-localhost}:18789
 EOF
 chmod 600 "${HOME}/.openclaw/.env"
 log "Wrote ~/.openclaw/.env"
@@ -232,11 +235,11 @@ restart_service() {
 }
 
 log "Restarting services…"
+restart_service "paperclip"
+log "Paperclip running on http://${TAILSCALE_IP:-localhost}:${PAPERCLIP_PORT:-3100}"
 restart_service "personal-os"
 restart_service "miniflux-mcp"
 log "Miniflux MCP SSE server running on http://127.0.0.1:${MCP_PORT}/sse"
-restart_service "paperclip"
-log "Paperclip running on http://localhost:3100"
 # Reload mcporter config without a full service restart (picks up mcporter.json changes).
 if command -v openclaw >/dev/null 2>&1; then
   openclaw gateway restart || log "⚠ 'openclaw gateway restart' failed — check gateway logs."

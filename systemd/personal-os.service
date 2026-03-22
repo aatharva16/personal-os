@@ -1,7 +1,7 @@
 [Unit]
 Description=Personal AI OS — OpenClaw Gateway Daemon
 Documentation=https://github.com/openclaw/openclaw
-After=network-online.target
+After=network-online.target paperclip.service
 Wants=network-online.target
 
 [Service]
@@ -12,6 +12,7 @@ WorkingDirectory=/home/clawuser/.openclaw
 
 # openclaw reads openclaw.json from the working directory or ~/.openclaw/
 Environment=OPENCLAW_CONFIG_PATH=/home/clawuser/.openclaw/openclaw.json
+EnvironmentFile=/home/clawuser/.openclaw/.env
 # Avoid extra startup overhead from self-respawn on VM/small hosts.
 Environment=OPENCLAW_NO_RESPAWN=1
 # Speed up repeated CLI runs via V8 compile cache.
