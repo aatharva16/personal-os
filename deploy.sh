@@ -238,33 +238,56 @@ log "Restarting services…"
 restart_service "paperclip"
 log "Paperclip running on http://localhost:${PAPERCLIP_PORT:-3100}"
 
-# ── Claim Paperclip agent API key ──────────────────────────────────────────
-# After hiring an agent in Paperclip UI, `local-cli` creates the API key file
-# that OpenClaw agents need to authenticate task requests.
-# Requires PAPERCLIP_COMPANY_ID and PAPERCLIP_AGENT_REF in .env.
-if [[ -n "${PAPERCLIP_COMPANY_ID:-}" && -n "${PAPERCLIP_AGENT_REF:-}" ]]; then
-  API_KEY_FILE="${OPENCLAW_WORKSPACE_ROOT}/paperclip-claimed-api-key.json"
-  if [[ ! -f "${API_KEY_FILE}" ]]; then
-    log "Claiming Paperclip agent API key (first run after hire)…"
-    # Wait for Paperclip API to be healthy before claiming
-    for i in $(seq 1 10); do
-      curl -fsS "http://localhost:${PAPERCLIP_PORT:-3100}/api/health" >/dev/null 2>&1&& break
-      sleep 2
-    done
-    npx paperclipai agent local-cli "${PAPERCLIP_AGENT_REF}" \
-      -C "${PAPERCLIP_COMPANY_ID}" \
-      --no-install-skills \
-      --api-base "http://localhost:${PAPERCLIP_PORT:-3100}" \
-      --json > "${API_KEY_FILE}" \
-      && log "✓ Wrote ${API_KEY_FILE}" \
-      || log "⚠ Failed to claim Paperclip API key — run manually: npx paperclipai agent local-cli ${PAPERCLIP_AGENT_REF} -C ${PAPERCLIP_COMPANY_ID}"
-    chmod 600 "${API_KEY_FILE}" 2>/dev/null || true
+# ── Provision Paperclip agent API keys ──────────────────────────────────────
+# `local-cli` is a standard Paperclip step: it creates an API key for an agent
+# and writes paperclip-claimed-api-key.json. In native/Claude Code setups this
+# runs once manually; here we automate it for every hired agent.
+# Requires PAPERCLIP_COMPANY_ID in .env (single var — agents are auto-discovered).
+PAPERCLIP_API_BASE="http://localhost:${PAPERCLIP_PORT:-3100}"
+if [[ -n "${PAPERCLIP_COMPANY_ID:-}" ]]; then
+  # Wait for Paperclip API to be healthy
+  log "Waiting for Paperclip API…"
+  for i in $(seq 1 10); do
+    curl -fsS "${PAPERCLIP_API_BASE}/api/health" >/dev/null 2>&1 && break
+    sleep 2
+  done
+
+  # Configure CLI context profile so all commands use the right API base + company
+  npx paperclipai context set \
+    --api-base "${PAPERCLIP_API_BASE}" \
+    --company-id "${PAPERCLIP_COMPANY_ID}" >/dev/null 2>&1 \
+    || log "⚠ Failed to set Paperclip CLI context"
+
+  # Discover all hired agents and provision API keys
+  AGENT_REFS=$(npx paperclipai agent list -C "${PAPERCLIP_COMPANY_ID}" --json 2>/dev/null \
+    | python3 -c "import sys,json; [print(a.get('urlKey') or a.get('id')) for a in json.load(sys.stdin)]" 2>/dev/null) || true
+
+  if [[ -n "${AGENT_REFS}" ]]; then
+    while IFS= read -r AGENT_REF; do
+      # Each agent workspace may need the key file. Also place in the generic
+      # workspace path that the acpx plugin uses for ACP task execution.
+      for WS_DIR in "${OPENCLAW_WORKSPACE_ROOT}" "${OPENCLAW_WORKSPACE_ROOT}/workspace-"*; do
+        [[ -d "${WS_DIR}" ]] || continue
+        KEY_FILE="${WS_DIR}/paperclip-claimed-api-key.json"
+        if [[ ! -f "${KEY_FILE}" ]]; then
+          log "Claiming API key for agent '${AGENT_REF}' → ${WS_DIR}/"
+          npx paperclipai agent local-cli "${AGENT_REF}" \
+            -C "${PAPERCLIP_COMPANY_ID}" \
+            --no-install-skills \
+            --api-base "${PAPERCLIP_API_BASE}" \
+            --json > "${KEY_FILE}" 2>/dev/null \
+            && chmod 600 "${KEY_FILE}" \
+            || { rm -f "${KEY_FILE}"; log "⚠ Failed to claim key for '${AGENT_REF}'"; }
+        fi
+      done
+    done <<< "${AGENT_REFS}"
+    log "✓ Paperclip agent API keys provisioned."
   else
-    log "Paperclip API key already claimed → ${API_KEY_FILE}"
+    log "No hired agents found for company ${PAPERCLIP_COMPANY_ID} — skipping API key provisioning."
   fi
 else
-  log "PAPERCLIP_COMPANY_ID / PAPERCLIP_AGENT_REF not set — skipping API key claim."
-  log "  To fix: hire an agent in Paperclip UI, then add both vars to .env and re-deploy."
+  log "PAPERCLIP_COMPANY_ID not set — skipping Paperclip API key provisioning."
+  log "  Set it after creating a company: npx paperclipai company list"
 fi
 
 # ── Expose Paperclip to Tailnet via tailscale serve ─────────────────────────
