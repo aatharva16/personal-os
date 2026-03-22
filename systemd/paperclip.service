@@ -11,7 +11,7 @@ User=clawuser
 Group=clawuser
 WorkingDirectory=/home/clawuser/.paperclip
 
-ExecStart=/usr/bin/env npx paperclipai start
+ExecStart=/usr/bin/env npx paperclipai run
 Restart=on-failure
 RestartSec=10
 
